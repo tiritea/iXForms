@@ -7,15 +7,71 @@
 //
 
 import UIKit
+import RealmSwift
+import os.log
+
+// Realm object classes
+
+enum FormStatus: Int {
+    case open, closed, closing
+}
+
+class XForm: Object {
+    @objc dynamic var id: String!
+    @objc dynamic var name: String!
+    @objc dynamic var version: String!
+
+    override static func primaryKey() -> String? {return "id"}
+}
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
+class AppDelegate: UIResponder, UIApplicationDelegate, GSBListTableViewDataSource {
+    
     var window: UIWindow?
-
-
+    var forms: Array<XForm> = []
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+ 
+        let realm = try! Realm()
+        
+        try! realm.write {
+            realm.deleteAll()
+        }
+        
+        try! realm.write {
+            let form = XForm()
+            form.id = "1"
+            form.name = "My First XForm"
+            form.version = "1.0.0"
+            realm.create(XForm.self, value: form, update: .error)
+
+            form.id = "2"
+            form.name = "My Second XForm"
+            form.version = "1.0.1"
+            realm.create(XForm.self, value: form, update: .error)
+        }
+        
+        forms = Array(realm.objects(XForm.self))
+        
+        let formsViewController = GSBListTableViewController()
+        formsViewController.tabBarItem = UITabBarItem(title: "Forms", image: UIImage(named: "icons8-paste-33"), tag: 0)
+        formsViewController.dataSource = self
+        formsViewController.cellType = GSBFormTableViewCell.self
+        
+        let submissionsViewController = SecondViewController()
+        submissionsViewController.tabBarItem = UITabBarItem(title: "Submissions", image: UIImage(named: "icons8-documents-33"), tag: 1)
+
+        let settingsController = GSBSettingsViewController()
+        settingsController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(named: "icons8-settings-33"), tag: 2)
+        
+        let mainTabController = UITabBarController();
+        mainTabController.viewControllers = [formsViewController, submissionsViewController, settingsController]
+
+        window = UIWindow(frame: UIScreen.main.bounds)
+        window?.rootViewController = UINavigationController(rootViewController: mainTabController)
+        window?.makeKeyAndVisible()
+        
         return true
     }
 
@@ -41,6 +97,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
-
+    // GSBListTableViewDataSource
+    var list: Array<Any> {
+        //return self.forms
+        let realm = try! Realm()
+        return Array(realm.objects(XForm.self))
+    }
 }
 
