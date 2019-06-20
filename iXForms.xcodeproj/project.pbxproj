@@ -13,6 +13,18 @@
 		122BF2E422AE5FB100F81546 /* icons8-cancel-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2E322AE5FB100F81546 /* icons8-cancel-filled-30@3x.png */; };
 		122BF2E622AE5FF800F81546 /* icons8-check-mark-symbol-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2E522AE5FF800F81546 /* icons8-check-mark-symbol-filled-30@3x.png */; };
 		122BF2E822AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2E722AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png */; };
+		122BF2EC22B4B42400F81546 /* icons8-help-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2EB22B4B42400F81546 /* icons8-help-33@3x.png */; };
+		122BF2F022B61B9A00F81546 /* icons8-download-from-cloud-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2EF22B61B9A00F81546 /* icons8-download-from-cloud-filled-30@3x.png */; };
+		122BF2F422B62B7E00F81546 /* GSBFormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 122BF2F322B62B7E00F81546 /* GSBFormViewController.swift */; };
+		122BF2F622B6407000F81546 /* icons8-smartphone-tablet-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2F522B6407000F81546 /* icons8-smartphone-tablet-30@3x.png */; };
+		122BF2F822B7484A00F81546 /* icons8-paste-filled-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2F722B7484A00F81546 /* icons8-paste-filled-33@3x.png */; };
+		122BF2FA22B7487E00F81546 /* icons8-documents-filled-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2F922B7487E00F81546 /* icons8-documents-filled-33@3x.png */; };
+		122BF2FC22B748AA00F81546 /* icons8-settings-filled-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2FB22B748AA00F81546 /* icons8-settings-filled-33@3x.png */; };
+		122BF2FE22B748D700F81546 /* icons8-help-filled-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2FD22B748D700F81546 /* icons8-help-filled-33@3x.png */; };
+		122BF30222B8342600F81546 /* icons8-box-important-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF30122B8342600F81546 /* icons8-box-important-filled-30@3x.png */; };
+		122BF30422B8348D00F81546 /* icons8-download-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF30322B8348C00F81546 /* icons8-download-30@3x.png */; };
+		122BF30622B834BC00F81546 /* icons8-upload-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF30522B834BC00F81546 /* icons8-upload-30@3x.png */; };
+		122BF30822B8357900F81546 /* icons8-smartphone-tablet-filled-90.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF30722B8357900F81546 /* icons8-smartphone-tablet-filled-90.png */; };
 		1259838722053CE700F41566 /* GSBListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1259838622053CE700F41566 /* GSBListTableViewController.swift */; };
 		125983892211312900F41566 /* GSBFormTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125983882211312900F41566 /* GSBFormTableViewCell.swift */; };
 		1259838D2211435500F41566 /* icons8-paste-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1259838C2211435500F41566 /* icons8-paste-33@3x.png */; };
@@ -54,6 +66,18 @@
 		122BF2E322AE5FB100F81546 /* icons8-cancel-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-cancel-filled-30@3x.png"; sourceTree = "<group>"; };
 		122BF2E522AE5FF800F81546 /* icons8-check-mark-symbol-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-check-mark-symbol-filled-30@3x.png"; sourceTree = "<group>"; };
 		122BF2E722AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-cloud-checked-filled-30@3x.png"; sourceTree = "<group>"; };
+		122BF2EB22B4B42400F81546 /* icons8-help-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-help-33@3x.png"; sourceTree = "<group>"; };
+		122BF2EF22B61B9A00F81546 /* icons8-download-from-cloud-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-download-from-cloud-filled-30@3x.png"; sourceTree = "<group>"; };
+		122BF2F322B62B7E00F81546 /* GSBFormViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBFormViewController.swift; sourceTree = "<group>"; };
+		122BF2F522B6407000F81546 /* icons8-smartphone-tablet-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-smartphone-tablet-30@3x.png"; sourceTree = "<group>"; };
+		122BF2F722B7484A00F81546 /* icons8-paste-filled-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-paste-filled-33@3x.png"; sourceTree = "<group>"; };
+		122BF2F922B7487E00F81546 /* icons8-documents-filled-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-documents-filled-33@3x.png"; sourceTree = "<group>"; };
+		122BF2FB22B748AA00F81546 /* icons8-settings-filled-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-settings-filled-33@3x.png"; sourceTree = "<group>"; };
+		122BF2FD22B748D700F81546 /* icons8-help-filled-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-help-filled-33@3x.png"; sourceTree = "<group>"; };
+		122BF30122B8342600F81546 /* icons8-box-important-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-box-important-filled-30@3x.png"; sourceTree = "<group>"; };
+		122BF30322B8348C00F81546 /* icons8-download-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-download-30@3x.png"; sourceTree = "<group>"; };
+		122BF30522B834BC00F81546 /* icons8-upload-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-upload-30@3x.png"; sourceTree = "<group>"; };
+		122BF30722B8357900F81546 /* icons8-smartphone-tablet-filled-90.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-smartphone-tablet-filled-90.png"; sourceTree = "<group>"; };
 		1259838622053CE700F41566 /* GSBListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBListTableViewController.swift; sourceTree = "<group>"; };
 		125983882211312900F41566 /* GSBFormTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBFormTableViewCell.swift; sourceTree = "<group>"; };
 		1259838C2211435500F41566 /* icons8-paste-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-paste-33@3x.png"; sourceTree = "<group>"; };
@@ -111,16 +135,43 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		12598394221148EE00F41566 /* Icons */ = {
+		122BF2F122B61BAB00F81546 /* tabs */ = {
 			isa = PBXGroup;
 			children = (
 				1259838C2211435500F41566 /* icons8-paste-33@3x.png */,
+				122BF2F722B7484A00F81546 /* icons8-paste-filled-33@3x.png */,
 				1259838E2211444600F41566 /* icons8-documents-33@3x.png */,
+				122BF2F922B7487E00F81546 /* icons8-documents-filled-33@3x.png */,
 				125983902211489B00F41566 /* icons8-settings-33@3x.png */,
+				122BF2FB22B748AA00F81546 /* icons8-settings-filled-33@3x.png */,
+				122BF2EB22B4B42400F81546 /* icons8-help-33@3x.png */,
+				122BF2FD22B748D700F81546 /* icons8-help-filled-33@3x.png */,
+			);
+			path = tabs;
+			sourceTree = "<group>";
+		};
+		122BF2F222B61BCE00F81546 /* status */ = {
+			isa = PBXGroup;
+			children = (
 				122BF2E522AE5FF800F81546 /* icons8-check-mark-symbol-filled-30@3x.png */,
-				122BF2E722AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png */,
 				122BF2E322AE5FB100F81546 /* icons8-cancel-filled-30@3x.png */,
+				122BF30122B8342600F81546 /* icons8-box-important-filled-30@3x.png */,
+				122BF2E722AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png */,
 				122BF2E122AE5F9800F81546 /* icons8-cloud-cross-filled-30@3x.png */,
+				122BF2EF22B61B9A00F81546 /* icons8-download-from-cloud-filled-30@3x.png */,
+			);
+			path = status;
+			sourceTree = "<group>";
+		};
+		12598394221148EE00F41566 /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				122BF2F522B6407000F81546 /* icons8-smartphone-tablet-30@3x.png */,
+				122BF30722B8357900F81546 /* icons8-smartphone-tablet-filled-90.png */,
+				122BF30322B8348C00F81546 /* icons8-download-30@3x.png */,
+				122BF30522B834BC00F81546 /* icons8-upload-30@3x.png */,
+				122BF2F122B61BAB00F81546 /* tabs */,
+				122BF2F222B61BCE00F81546 /* status */,
 			);
 			path = Icons;
 			sourceTree = "<group>";
@@ -151,11 +202,12 @@
 			isa = PBXGroup;
 			children = (
 				12B45D0B21FD1B0A00F3064F /* AppDelegate.swift */,
-				1259838622053CE700F41566 /* GSBListTableViewController.swift */,
-				12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */,
 				12BB609122AB2E39005220CE /* GSBServer.swift */,
-				122417B722A33220007E3D0C /* GSBSettingsViewController.swift */,
+				1259838622053CE700F41566 /* GSBListTableViewController.swift */,
 				125983882211312900F41566 /* GSBFormTableViewCell.swift */,
+				122BF2F322B62B7E00F81546 /* GSBFormViewController.swift */,
+				12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */,
+				122417B722A33220007E3D0C /* GSBSettingsViewController.swift */,
 				12B45D1121FD1B0A00F3064F /* Main.storyboard */,
 				12B45D1421FD1B0D00F3064F /* Assets.xcassets */,
 				12B45D1621FD1B0D00F3064F /* LaunchScreen.storyboard */,
@@ -314,15 +366,26 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				122BF2F022B61B9A00F81546 /* icons8-download-from-cloud-filled-30@3x.png in Resources */,
 				122BF2E422AE5FB100F81546 /* icons8-cancel-filled-30@3x.png in Resources */,
+				122BF2F622B6407000F81546 /* icons8-smartphone-tablet-30@3x.png in Resources */,
+				122BF30622B834BC00F81546 /* icons8-upload-30@3x.png in Resources */,
 				122BF2E622AE5FF800F81546 /* icons8-check-mark-symbol-filled-30@3x.png in Resources */,
+				122BF30822B8357900F81546 /* icons8-smartphone-tablet-filled-90.png in Resources */,
 				12B45D1821FD1B0D00F3064F /* LaunchScreen.storyboard in Resources */,
 				12B45D1521FD1B0D00F3064F /* Assets.xcassets in Resources */,
+				122BF2FA22B7487E00F81546 /* icons8-documents-filled-33@3x.png in Resources */,
+				122BF2FE22B748D700F81546 /* icons8-help-filled-33@3x.png in Resources */,
 				122BF2E222AE5F9800F81546 /* icons8-cloud-cross-filled-30@3x.png in Resources */,
+				122BF30222B8342600F81546 /* icons8-box-important-filled-30@3x.png in Resources */,
 				125983912211489B00F41566 /* icons8-settings-33@3x.png in Resources */,
 				1259838F2211444600F41566 /* icons8-documents-33@3x.png in Resources */,
+				122BF2EC22B4B42400F81546 /* icons8-help-33@3x.png in Resources */,
+				122BF30422B8348D00F81546 /* icons8-download-30@3x.png in Resources */,
 				12B45D1321FD1B0A00F3064F /* Main.storyboard in Resources */,
+				122BF2F822B7484A00F81546 /* icons8-paste-filled-33@3x.png in Resources */,
 				122BF2E822AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png in Resources */,
+				122BF2FC22B748AA00F81546 /* icons8-settings-filled-33@3x.png in Resources */,
 				1259838D2211435500F41566 /* icons8-paste-33@3x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -447,6 +510,7 @@
 			files = (
 				1259838722053CE700F41566 /* GSBListTableViewController.swift in Sources */,
 				12B45D1021FD1B0A00F3064F /* SecondViewController.swift in Sources */,
+				122BF2F422B62B7E00F81546 /* GSBFormViewController.swift in Sources */,
 				12B45D0C21FD1B0A00F3064F /* AppDelegate.swift in Sources */,
 				12BB609222AB2E39005220CE /* GSBServer.swift in Sources */,
 				122417B822A33220007E3D0C /* GSBSettingsViewController.swift in Sources */,

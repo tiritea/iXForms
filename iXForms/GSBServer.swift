@@ -8,8 +8,18 @@
 
 import Foundation
 import os.log
-import KeychainSwift
+
 import RealmSwift
+import KeychainSwift
+
+enum ServerAPI: String, CaseIterable {
+    case openrosa_aggregate = "OpenRosa (ODK Aggregate)"
+    case openrosa_central = "OpenRosa (ODK Central)"
+    case openrosa_kobo = "OpenRosa (KoboToolbox)"
+    case rest_central = "REST (ODK Central)"
+    case rest_gomobile = "REST (GoMobile)"
+    case custom_gomobile = "Custom (GoMobile)"
+}
 
 var currentServer: GSBServer? // singleton
 
@@ -17,12 +27,16 @@ class GSBServer {
     var url: URL!
     var api: Int!
     var token: String?
+    let dateFormat = DateFormatter()
+    let hasGroups = false
     
     init(url: URL!, api: Int!) {
-        os_log("%s.%s url=%s", #file, #function, url.absoluteString)
-
+        os_log("%s.%s url=%s api=%lu", #file, #function, url.absoluteString, api)
         self.url = url
         self.api = api
+        
+        dateFormat.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.S'Z'" // eg 2018-11-02T00:44:22.322Z
+        dateFormat.locale = Locale.current
     }
     
     func login(username: String!, password: String!) {
@@ -56,12 +70,6 @@ class GSBServer {
                         try! db.write {
                             db.deleteAll()
                         }
-
-                        // TEST
-                        //self.getCategoryList()
-                        self.getFormList(categoryID: "1") // 1=Default Project
-                        //self.getForm(formID: "earthquake", categoryID: "1") // 1=Default Project
-
                     } catch {
                         os_log("ERROR login failed")
                     }
@@ -73,7 +81,7 @@ class GSBServer {
         }
     }
     
-    func getCategoryList() {
+    func getGroupList() {
         os_log("%s.%s", #file, #function)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
@@ -103,11 +111,11 @@ class GSBServer {
         }
     }
     
-    func getFormList(categoryID: String!) {
-        os_log("%s.%s", #file, #function)
+    func getFormList(groupID: String!, completion: @escaping (Error?) -> Void) {
+        os_log("%s.%s groupID=%s", #file, #function, groupID)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
-            components.path.append("/projects/" + categoryID + "/forms") // REST endpoint
+            components.path.append("/projects/" + groupID + "/forms") // REST endpoint; "groups" -> projects
             
             var request = URLRequest(url: components.url!)
             request.httpMethod = "GET"
@@ -116,7 +124,7 @@ class GSBServer {
             if let token = self.token {
                 request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
             }
-
+            
             let session = URLSession.shared.dataTask(with: request) { data, response, error in
                 do {
                     if (error != nil || (response as! HTTPURLResponse).statusCode != 200) {
@@ -124,34 +132,43 @@ class GSBServer {
                     }
                     
                     let results = try JSONSerialization.jsonObject(with: data!, options: [.mutableContainers]) as! Array<Dictionary<String,Any>> // must be Any to handle possible null values!
-                    os_log("%lu forms in %s", results.count, categoryID)
+                    os_log("%lu forms", results.count)
                     
                     let db = try! Realm()
                     for result in results {
                         os_log("result: %@", result)
-
+                        
                         try db.write {
-                            let form = XForm()
-                            form.id = result["xmlFormId"] as! String
-                            form.name = result["name"] as? String
-                            form.version = result["version"] as? String
-                            db.create(XForm.self, value: form, update: .all) // over-write if id already exists
+                            // check if form previously loaded
+                            var xform = db.object(ofType: XForm.self, forPrimaryKey: result["xmlFormId"] as! String)
+                            if (xform == nil) {
+                                // if not, create new form
+                                xform = XForm()
+                                xform!.id = result["xmlFormId"] as! String
+                            }
+                            self.updateFormWithDictionary(form: xform!, dict: result)
+                            db.create(XForm.self, value: xform!, update: .all) // replace existing form
                         }
                     }
                     // TODO remove forms that no longer exist
+                    completion(nil)
                 } catch {
                     os_log("ERROR getFormList failed")
+                    completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "getFormList failed"]))
                 }
             }
             session.resume()
+        } else {
+            os_log("Bad URL")
+            completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "invalid server URL"]))
         }
     }
 
-    func getForm(formID: String!, categoryID: String!) {
+    func getForm(formID: String!, groupID: String!, completion: @escaping (Error?) -> Void) {
         os_log("%s.%s", #file, #function)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
-            components.path.append("/projects/" + categoryID + "/forms/" + formID) // REST endpoint
+            components.path.append("/projects/" + groupID + "/forms/" + formID) // REST endpoint
             
             var request = URLRequest(url: components.url!)
             request.httpMethod = "GET"
@@ -168,8 +185,13 @@ class GSBServer {
                         throw NSError(domain: "iXForms", code: 0, userInfo: [:])
                     }
 
-                    let results = try JSONSerialization.jsonObject(with: data!, options: [.mutableContainers]) as! Dictionary<String,Any> // must be Any to handle possible null values!
-                    os_log("name=%s", results["name"] as! String)
+                    let result = try JSONSerialization.jsonObject(with: data!, options: [.mutableContainers]) as! Dictionary<String,Any> // must be Any to handle possible null values!
+                    os_log("result: %@", result)
+                    let db = try! Realm()
+                    try db.write {
+                        let xform = db.object(ofType: XForm.self, forPrimaryKey: result["xmlFormId"] as! String)! // must alrady exist
+                        self.updateFormWithDictionary(form: xform, dict: result)
+                    }
                 } catch {
                     os_log("ERROR getForm failed")
                 }
@@ -178,4 +200,44 @@ class GSBServer {
         }
     }
 
+    func updateFormWithDictionary(form: XForm, dict: Dictionary<String, Any>) {
+        form.name = dict["name"] as? String
+        form.version = dict["version"] as? String
+        form.xmlHash = dict["hash"] as? String
+        
+        switch dict["state"] as! String {
+        case "open":
+            form.state.value = FormState.open.rawValue
+        case "closing":
+            form.state.value = FormState.closing.rawValue
+        case "closed":
+            form.state.value = FormState.closed.rawValue
+        default:
+            assertionFailure("unrecognized state")
+        }
+
+        if let created = dict["createdAt"] as? String {
+            form.created = self.dateFormat.date(from: created)
+        }
+        
+        if let updated = dict["updatedAt"] as? String {
+            form.updated = self.dateFormat.date(from: updated)
+        }
+        
+        if let xml = dict["xml"] as? String {
+            form.xml = xml
+        }
+
+        if let createdBy = dict["createdBy"] as? Dictionary<String,Any> {
+            form.author = createdBy["displayName"] as? String
+        }
+        
+        if let lastSubmission = dict["lastSubmission"] as? String {
+            form.lastSubmission = self.dateFormat.date(from: lastSubmission)
+        }
+        
+        if let submissions = dict["submissions"] as? NSNumber {
+            form.records = submissions
+        }
+    }
 }

@@ -7,72 +7,144 @@
 //
 
 import UIKit
-import RealmSwift
 import os.log
+
+import RealmSwift
 
 // Realm object classes
 
-enum FormStatus: Int {
-    case open, closed, closing
+enum FormState: Int, CustomStringConvertible {
+    case open = 0
+    case closing = 1
+    case closed = 2
+    case unknown = 3
+    
+    // https://stackoverflow.com/questions/24701075
+    var description : String {
+        switch self {
+        case .open: return "Open"
+        case .closing: return "Closing"
+        case .closed: return "Closed"
+        case .unknown: return "Unknown"
+        }
+    }
+    
+    func color() -> UIColor {
+        switch self {
+        case .open: return UIColor(hex: 0x008000)
+        case .closing: return UIColor(hex: 0xffd700)
+        case .closed: return UIColor.red
+        case .unknown: return UIColor.darkGray
+        }
+    }
 }
 
 class XForm: Object {
     @objc dynamic var id: String!
-    @objc dynamic var name: String!
-    @objc dynamic var version: String!
+    @objc dynamic var name: String?
+    @objc dynamic var version: String?
+    @objc dynamic var xml: String?
+    @objc dynamic var xmlHash: String?
+    @objc dynamic var author: String?
+    @objc dynamic var created: Date?
+    @objc dynamic var updated: Date?
+    @objc dynamic var lastSubmission: Date?
+    @objc dynamic var records: NSNumber = -1 // cant use Int because might be null (-1 = unknown)
+
+    let state = RealmOptional<Int>() // FormState
 
     override static func primaryKey() -> String? {return "id"}
+    
+    func icon() -> UIImage {
+        var image: UIImage?
+        switch self.state.value {
+        case FormState.open.rawValue:
+            if (self.xml != nil) { // on device
+                image = UIImage(named: "icons8-check-mark-symbol-filled-30")
+            } else { // must download from server
+                image = UIImage(named: "icons8-download-from-cloud-filled-30")
+            }
+        case FormState.closing.rawValue:
+            if (self.xml != nil) { // on device but can still be submitted
+                image = UIImage(named: "icons8-check-mark-symbol-filled-30")
+            } else { // on server and cannot be downloaded
+                image = UIImage(named: "icons8-cloud-cross-filled-30")
+            }
+        case FormState.closed.rawValue:
+            if (self.xml != nil) { // on device
+                image = UIImage(named: "icons8-cancel-filled-30")
+            } else { // on server
+                image = UIImage(named: "icons8-cloud-cross-filled-30")
+            }
+        default:
+            assertionFailure("unrecognized form state")
+        }
+        return image!.withRenderingMode(.alwaysTemplate)
+    }
 }
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, GSBListTableViewDataSource {
     
     var window: UIWindow?
-    var forms: Array<XForm> = []
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
- 
-        let realm = try! Realm()
-        
-        try! realm.write {
-            realm.deleteAll()
-        }
-        
-        try! realm.write {
-            let form = XForm()
-            form.id = "1"
-            form.name = "My First XForm"
-            form.version = "1.0.0"
-            realm.create(XForm.self, value: form, update: .error)
+        os_log("%s.%s", #file, #function)
 
-            form.id = "2"
-            form.name = "My Second XForm"
-            form.version = "1.0.1"
-            realm.create(XForm.self, value: form, update: .error)
-        }
-        
-        forms = Array(realm.objects(XForm.self))
-        
         let formsViewController = GSBListTableViewController()
-        formsViewController.tabBarItem = UITabBarItem(title: "Forms", image: UIImage(named: "icons8-paste-33"), tag: 0)
+        formsViewController.title = "Forms"
         formsViewController.dataSource = self
-        formsViewController.cellType = GSBFormTableViewCell.self
-        
-        let submissionsViewController = SecondViewController()
-        submissionsViewController.tabBarItem = UITabBarItem(title: "Submissions", image: UIImage(named: "icons8-documents-33"), tag: 1)
+        formsViewController.tableView.register(GSBFormTableViewCell.self, forCellReuseIdentifier: formsViewController.reuseIdentifier)
+        let formsTab = UINavigationController(rootViewController:formsViewController)
+        //formsTab.tabBarItem = UITabBarItem(title: formsViewController.title, image: UIImage(named: "icons8-paste-33"), tag: 0)
+        formsTab.tabBarItem = UITabBarItem(title: formsViewController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
+        formsTab.tabBarItem.tag = 0
 
+        let submissionsViewController = UIViewController()
+        submissionsViewController.title = "Submissions"
+        submissionsViewController.view.backgroundColor = UIColor.red
+        let submissionsTab = UINavigationController(rootViewController:submissionsViewController)
+        submissionsTab.tabBarItem = UITabBarItem(title: submissionsViewController.title, image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
+        submissionsTab.tabBarItem.tag = 1
+        
         let settingsController = GSBSettingsViewController()
-        settingsController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(named: "icons8-settings-33"), tag: 2)
+        settingsController.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "icons8-settings-33"), selectedImage: UIImage(named: "icons8-settings-filled-33"))
+        settingsController.tabBarItem.tag = 2
+        settingsController.title = "Settings"
         
-        let mainTabController = UITabBarController();
-        mainTabController.viewControllers = [formsViewController, submissionsViewController, settingsController]
+        let helpController = UIViewController()
+        helpController.view.backgroundColor = UIColor.blue
+        helpController.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "icons8-help-33"), selectedImage: UIImage(named: "icons8-help-filled-33"))
+        helpController.tabBarItem.tag = 3
+        helpController.title = "Help"
 
+        let mainTabController = UITabBarController();
+        mainTabController.viewControllers = [formsTab, submissionsTab, settingsController, helpController]
+        mainTabController.selectedViewController = settingsController;
+        
         window = UIWindow(frame: UIScreen.main.bounds)
-        window?.rootViewController = UINavigationController(rootViewController: mainTabController)
+        window?.rootViewController = mainTabController
         window?.makeKeyAndVisible()
         
+        if let urlString = UserDefaults.standard.string(forKey: "server"), let url = URL(string: urlString) {
+            let api = UserDefaults.standard.integer(forKey: "api")
+            currentServer = GSBServer.init(url: url, api: api)
+        }
+
         return true
+    }
+
+    // <GSBListTableViewDataSource>
+    func refresh(controller: GSBListTableViewController, completion: @escaping (Error?) -> Void) {
+        os_log("%s.%s", #file, #function)
+        
+        // TODO check which controller
+        
+        if let server = currentServer {
+            server.getFormList(groupID: "1", completion: completion)
+        } else {
+            completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "no server"]))
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -97,11 +169,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GSBListTableViewDataSourc
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
-    // GSBListTableViewDataSource
-    var list: Array<Any> {
-        //return self.forms
-        let realm = try! Realm()
-        return Array(realm.objects(XForm.self))
-    }
 }
 

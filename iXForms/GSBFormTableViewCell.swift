@@ -9,30 +9,100 @@
 import UIKit
 import os.log
 
+extension UIFont {
+    func bold() -> UIFont {
+        let traits = fontDescriptor.symbolicTraits.rawValue | UIFontDescriptor.SymbolicTraits.traitBold.rawValue
+        return UIFont(descriptor: fontDescriptor.withSymbolicTraits(UIFontDescriptor.SymbolicTraits(rawValue: traits))!, size: 0)
+    }
+
+    func italic() -> UIFont {
+        let traits = fontDescriptor.symbolicTraits.rawValue | UIFontDescriptor.SymbolicTraits.traitItalic.rawValue
+        return UIFont(descriptor: fontDescriptor.withSymbolicTraits(UIFontDescriptor.SymbolicTraits(rawValue: traits))!, size: 0)
+    }
+    
+    func regular() -> UIFont {
+        let traits = fontDescriptor.symbolicTraits.rawValue & ~UIFontDescriptor.SymbolicTraits.traitBold.rawValue & ~UIFontDescriptor.SymbolicTraits.traitItalic.rawValue
+        return UIFont(descriptor: fontDescriptor.withSymbolicTraits(UIFontDescriptor.SymbolicTraits(rawValue: traits))!, size: 0)
+    }
+}
+
+extension UIColor {
+    convenience init(red: Int, green: Int, blue: Int) {
+        assert(red >= 0 && red <= 255, "Invalid red component")
+        assert(green >= 0 && green <= 255, "Invalid green component")
+        assert(blue >= 0 && blue <= 255, "Invalid blue component")
+        
+        self.init(red: CGFloat(red) / 255.0, green: CGFloat(green) / 255.0, blue: CGFloat(blue) / 255.0, alpha: 1.0)
+    }
+    
+    convenience init(hex: Int) {
+        self.init(
+            red: (hex >> 16) & 0xFF,
+            green: (hex >> 8) & 0xFF,
+            blue: hex & 0xFF
+        )
+    }
+}
+
 class GSBFormTableViewCell: UITableViewCell, GSBListTableViewCell {
     
     // GSBListTableViewCell
     func initWith(object: Any) -> UITableViewCell {
         let form: XForm = object as! XForm
-        textLabel?.text = form.id + "\n" + (form.name ?? "")
-        textLabel?.numberOfLines = 0
-        detailTextLabel?.text = form.version
-        accessoryType = .detailButton
         
-        // icon shows form status
-        imageView?.image = UIImage(named: "icons8-cloud-checked-filled-30")?.withRenderingMode(.alwaysTemplate) // open (remote)
-        imageView?.image = UIImage(named: "icons8-check-mark-symbol-filled-30")?.withRenderingMode(.alwaysTemplate) // open
-        imageView?.tintColor = UIColor.green
+        if (form.name != nil && form.name!.count > 0) {
+            textLabel?.text = form.name
+            textLabel?.font = textLabel?.font.regular()
+        } else {
+            textLabel?.text = "untitled"
+            textLabel?.font = textLabel?.font.italic()
+        }
         
-        imageView?.image = UIImage(named: "icons8-cloud-cross-filled-30")?.withRenderingMode(.alwaysTemplate) // closed (remote)
-        imageView?.image = UIImage(named: "icons8-cancel-filled-30")?.withRenderingMode(.alwaysTemplate) // closed
-        imageView?.tintColor = UIColor.red
-
+        if (form.version != nil && form.version!.count > 0) {
+            detailTextLabel?.text = form.id + " (" + (form.version!) + ")"
+        } else {
+            detailTextLabel?.text = form.id
+        }
+        
+        // icon for status
+        var icon: UIImage?
+        var tint: UIColor?
+        switch form.state.value {
+        case FormState.open.rawValue:
+            if (form.xml != nil) { // on device
+                icon = UIImage(named: "icons8-check-mark-symbol-filled-30")
+            } else { // must download from server
+                icon = UIImage(named: "icons8-download-from-cloud-filled-30")
+            }
+            tint = FormState.open.color()
+        case FormState.closing.rawValue:
+            if (form.xml != nil) { // on device but can still be submitted
+                icon = UIImage(named: "icons8-check-mark-symbol-filled-30")
+            } else { // on server and cannot be downloaded
+                icon = UIImage(named: "icons8-cloud-cross-filled-30")
+            }
+            tint = FormState.closing.color()
+        case FormState.closed.rawValue:
+            if (form.xml != nil) { // on device
+                icon = UIImage(named: "icons8-cancel-filled-30")
+            } else { // on server
+                icon = UIImage(named: "icons8-cloud-cross-filled-30")
+            }
+            tint = FormState.closed.color()
+        default:
+            assertionFailure("unrecognized state")
+        }
+        imageView?.image = icon?.withRenderingMode(.alwaysTemplate)
+        imageView?.tintColor = tint!
         return self
     }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: UITableViewCell.CellStyle.value1, reuseIdentifier: reuseIdentifier)
+        super.init(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: reuseIdentifier)
+        textLabel?.numberOfLines = 0
+        detailTextLabel?.numberOfLines = 0
+        detailTextLabel?.textColor = UIColor.gray
+        accessoryType = .detailButton
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -6,31 +6,19 @@
 //  Copyright © 2019 Xiphware. All rights reserved.
 //
 
-import Eureka
 import os.log
-import KeychainSwift
 
-enum ServerAPI: String, CaseIterable {
-    case openrosa_aggregate = "OpenRosa (ODK Aggregate)"
-    case openrosa_central = "OpenRosa (ODK Central)"
-    case openrosa_kobo = "OpenRosa (KoboToolbox)"
-    case rest_central = "REST (ODK Central)"
-    case rest_gomobile = "REST (GoMobile)"
-    case custom_gomobile = "Custom (GoMobile)"
-}
+import Eureka
+import KeychainSwift
 
 class GSBSettingsViewController: FormViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        if (self.tabBarItem != nil) {self.title = self.tabBarItem.title} // BUG not working?
-
-        var section: Section
-        
+                
         // ---------- Client section ----------
         
-        section = Section("App")
+        var section = Section("App")
         form.append(section)
 
         section.append(TextRow("version") {
@@ -100,7 +88,7 @@ class GSBSettingsViewController: FormViewController {
                 // save to defaults
                 if let selected = row.value, let index = row.options!.index(of: selected) {
                     UserDefaults.standard.set(index, forKey: "api")
-                    os_log("server API=%s [%lu]", selected, index)
+                    os_log("api=%s [%lu]", selected, index)
                 }
             }
         )
@@ -152,8 +140,9 @@ class GSBSettingsViewController: FormViewController {
             $0.title = "Login"
             }
             .cellSetup { cell, row in
-                cell.tintColor = UIColor.red
+                cell.tintColor = UIColor.white
                 cell.textLabel?.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline) // bold
+                cell.backgroundColor = UIColor.red
             }
             .onCellSelection { cell, row in
                 self.login()
@@ -169,15 +158,14 @@ class GSBSettingsViewController: FormViewController {
         if let server = (self.form.rowBy(tag: "server") as! TextRow).value {
             // https://stackoverflow.com/questions/25678373
             let paths = server.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true).map(String.init)
-
             if (paths.count > 0) {components.host = paths[0]}
-            if (paths.count > 1) {components.path = "/" + paths[1]} // CRITICAL url path must start with "/..."
+            if (paths.count > 1) {components.path = "/" + paths[1]} // CRITICAL path must start with "/..."
             
             if let url = components.url {
                 // save to defaults
                 let urlString = url.absoluteString
                 UserDefaults.standard.set(urlString, forKey: "server")
-                os_log("server URL=%s", urlString)
+                os_log("server=%s", urlString)
             }
         }
     }
