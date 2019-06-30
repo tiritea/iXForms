@@ -13,6 +13,7 @@ import Eureka
 class GSBFormViewController: FormViewController {
     
     var xform: XForm!
+    let detailColor = UITableViewCell.init(style: .value1, reuseIdentifier: nil).detailTextLabel?.textColor
     
     convenience init(_ xform: XForm) {
         self.init()
@@ -46,7 +47,7 @@ class GSBFormViewController: FormViewController {
                 cell.isUserInteractionEnabled = false // disabled
             }
             .cellUpdate { cell, row in
-                cell.textField.textColor = UIColor.gray
+                cell.textField.textColor = self.detailColor
             }
         )
 
@@ -58,7 +59,7 @@ class GSBFormViewController: FormViewController {
                 cell.isUserInteractionEnabled = false // disabled
             }
             .cellUpdate { cell, row in
-                cell.textField.textColor = UIColor.gray
+                cell.textField.textColor = self.detailColor
             }
         )
         
@@ -70,7 +71,7 @@ class GSBFormViewController: FormViewController {
                 cell.isUserInteractionEnabled = false // disabled
             }
             .cellUpdate { cell, row in
-                cell.textField.textColor = UIColor.gray
+                cell.textField.textColor = self.detailColor
             }
         )
 
@@ -83,7 +84,7 @@ class GSBFormViewController: FormViewController {
                 cell.isUserInteractionEnabled = false // disabled
             }
             .cellUpdate { cell, row in
-                cell.textField.textColor = UIColor.gray
+                cell.textField.textColor = self.detailColor
             }
         )
 
@@ -119,7 +120,7 @@ class GSBFormViewController: FormViewController {
                 cell.isUserInteractionEnabled = false // disabled
             }
             .cellUpdate { cell, row in
-                cell.textField.textColor = UIColor.gray
+                cell.textField.textColor = self.detailColor
             }
         )
         
@@ -130,13 +131,13 @@ class GSBFormViewController: FormViewController {
         
         section.append(IntRow("submissions") {
             $0.title = "Total submissions"
-            $0.value = xform.records.intValue
+            $0.value = xform.numRecords.value
             }
             .cellSetup { cell, row in
                 cell.isUserInteractionEnabled = false // disabled
             }
             .cellUpdate { cell, row in
-                cell.textField.textColor = UIColor.gray
+                cell.textField.textColor = self.detailColor
             }
         )
 
@@ -200,6 +201,15 @@ class GSBFormViewController: FormViewController {
 
     @objc func start() {
         os_log("%s.%s", #file, #function)
+        
+        if let xml = xform.xml, let parser = GSBXFormParser(xml: xml, element:"label") {
+            if parser.parse() {
+                os_log("%s.%s value=%@", #file, #function, parser.value!)
+            } else {
+                os_log("%s.%s parser failed", #file, #function)
+            }
+        }
+        
         // TODO
     }
 

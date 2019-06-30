@@ -57,11 +57,7 @@ class GSBSettingsViewController: FormViewController {
         section = Section("Server")
         form.append(section)
         
-        var url: URL?
-        if let urlString = UserDefaults.standard.string(forKey: "server") {
-            url = URL(string: urlString)
-        }
-        
+        let url = URL(string: UserDefaults.standard.string(forKey: "server")!)
         section.append(TextRow("server") {
             $0.title = "Host"
             $0.placeholder = "hostname/path"
@@ -171,44 +167,38 @@ class GSBSettingsViewController: FormViewController {
     }
     
     func login() {
-        if let urlString = UserDefaults.standard.string(forKey: "server"),
-            let url = URL(string: urlString),
-            let host = url.host
-        {
-            let api = UserDefaults.standard.integer(forKey: "api")
-            let keychain = KeychainSwift()
-
-            let loginController = UIAlertController(title: nil, message: host, preferredStyle: .alert)
-            
-            loginController.addTextField(configurationHandler: { textField in
-                textField.placeholder = "username"
-                textField.keyboardType = .emailAddress
-                textField.autocapitalizationType = .none
-                textField.autocorrectionType = .no
-                textField.text = keychain.get("username")
-            })
-            
-            loginController.addTextField(configurationHandler: { textField in
-                textField.placeholder = "password"
-                textField.keyboardType = .asciiCapable
-                textField.autocapitalizationType = .none
-                textField.autocorrectionType = .no
-                textField.isSecureTextEntry = true
-                textField.text = keychain.get("password")
-            })
-            
-            loginController.addAction(UIAlertAction(title: "Login",
-                                                    style: .destructive, // red
-                handler: { action in
-                    let username = (loginController.textFields![0] as UITextField).text
-                    let password = (loginController.textFields![1] as UITextField).text
-                    currentServer = GSBServer.init(url: url, api: api)
-                    currentServer!.login(username: username, password: password)
-            }))
-            
-            loginController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-            
-            self.present(loginController, animated: true)
-        }
+        let host = server.url.host
+        let keychain = KeychainSwift()
+        
+        let loginController = UIAlertController(title: nil, message: host, preferredStyle: .alert)
+        
+        loginController.addTextField(configurationHandler: { textField in
+            textField.placeholder = "username"
+            textField.keyboardType = .emailAddress
+            textField.autocapitalizationType = .none
+            textField.autocorrectionType = .no
+            textField.text = keychain.get("username")
+        })
+        
+        loginController.addTextField(configurationHandler: { textField in
+            textField.placeholder = "password"
+            textField.keyboardType = .asciiCapable
+            textField.autocapitalizationType = .none
+            textField.autocorrectionType = .no
+            textField.isSecureTextEntry = true
+            textField.text = keychain.get("password")
+        })
+        
+        loginController.addAction(UIAlertAction(title: "Login",
+                                                style: .destructive, // red
+            handler: { action in
+                let username = (loginController.textFields![0] as UITextField).text
+                let password = (loginController.textFields![1] as UITextField).text
+                server.login(username: username, password: password)
+        }))
+        
+        loginController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        self.present(loginController, animated: true)
     }
 }

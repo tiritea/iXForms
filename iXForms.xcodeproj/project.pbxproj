@@ -38,6 +38,13 @@
 		12B45D2321FD1B0D00F3064F /* iXFormsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B45D2221FD1B0D00F3064F /* iXFormsTests.swift */; };
 		12B45D2E21FD1B0D00F3064F /* iXFormsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B45D2D21FD1B0D00F3064F /* iXFormsUITests.swift */; };
 		12BB609222AB2E39005220CE /* GSBServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12BB609122AB2E39005220CE /* GSBServer.swift */; };
+		12D4517422BC5FB3007F1760 /* GSBFormListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D4517322BC5FB3007F1760 /* GSBFormListViewController.swift */; };
+		12E2363B22BCD10100180F3F /* GSBSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2363A22BCD10100180F3F /* GSBSpinner.swift */; };
+		12E2363D22BCE05C00180F3F /* UIFont+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2363C22BCE05C00180F3F /* UIFont+.swift */; };
+		12E2363F22BCE0AD00180F3F /* UIColor+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2363E22BCE0AD00180F3F /* UIColor+.swift */; };
+		12E2364322BDEE5400180F3F /* GSBGroupListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364222BDEE5400180F3F /* GSBGroupListViewController.swift */; };
+		12E2364622BE136400180F3F /* GSBGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364522BE136400180F3F /* GSBGroupTableViewCell.swift */; };
+		12E2364B22C5A7B600180F3F /* GSBXFormParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364A22C5A7B600180F3F /* GSBXFormParser.swift */; };
 		45CCABEA3E74800994B161BA /* Pods_iXFormsUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBD300BA13BE4065F80625BB /* Pods_iXFormsUITests.framework */; };
 		8B8C4C60AE0DCDF935A7A70C /* Pods_iXForms.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 463842BDD45B16923A9CB75F /* Pods_iXForms.framework */; };
 /* End PBXBuildFile section */
@@ -97,6 +104,13 @@
 		12B45D2D21FD1B0D00F3064F /* iXFormsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iXFormsUITests.swift; sourceTree = "<group>"; };
 		12B45D2F21FD1B0D00F3064F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		12BB609122AB2E39005220CE /* GSBServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBServer.swift; sourceTree = "<group>"; };
+		12D4517322BC5FB3007F1760 /* GSBFormListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBFormListViewController.swift; sourceTree = "<group>"; };
+		12E2363A22BCD10100180F3F /* GSBSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBSpinner.swift; sourceTree = "<group>"; };
+		12E2363C22BCE05C00180F3F /* UIFont+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+.swift"; sourceTree = "<group>"; };
+		12E2363E22BCE0AD00180F3F /* UIColor+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+.swift"; sourceTree = "<group>"; };
+		12E2364222BDEE5400180F3F /* GSBGroupListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBGroupListViewController.swift; sourceTree = "<group>"; };
+		12E2364522BE136400180F3F /* GSBGroupTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBGroupTableViewCell.swift; sourceTree = "<group>"; };
+		12E2364A22C5A7B600180F3F /* GSBXFormParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBXFormParser.swift; sourceTree = "<group>"; };
 		2450511BE370DA6059737A55 /* Pods-iXFormsUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iXFormsUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-iXFormsUITests/Pods-iXFormsUITests.release.xcconfig"; sourceTree = "<group>"; };
 		463842BDD45B16923A9CB75F /* Pods_iXForms.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iXForms.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5252CF089560365CEE4A8A5C /* Pods-iXForms.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iXForms.release.xcconfig"; path = "Pods/Target Support Files/Pods-iXForms/Pods-iXForms.release.xcconfig"; sourceTree = "<group>"; };
@@ -201,13 +215,16 @@
 		12B45D0A21FD1B0A00F3064F /* iXForms */ = {
 			isa = PBXGroup;
 			children = (
+				12E2364C22C831F600180F3F /* Parser */,
 				12B45D0B21FD1B0A00F3064F /* AppDelegate.swift */,
 				12BB609122AB2E39005220CE /* GSBServer.swift */,
 				1259838622053CE700F41566 /* GSBListTableViewController.swift */,
-				125983882211312900F41566 /* GSBFormTableViewCell.swift */,
-				122BF2F322B62B7E00F81546 /* GSBFormViewController.swift */,
-				12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */,
-				122417B722A33220007E3D0C /* GSBSettingsViewController.swift */,
+				12E2364422BDEE5B00180F3F /* Groups */,
+				12D4517522BC6585007F1760 /* Forms */,
+				12D4517622BC6590007F1760 /* Submissions */,
+				12D4517722BC65A6007F1760 /* Settings */,
+				12E2364122BCE29500180F3F /* Utilities */,
+				12E2364022BCE26100180F3F /* Extensions */,
 				12B45D1121FD1B0A00F3064F /* Main.storyboard */,
 				12B45D1421FD1B0D00F3064F /* Assets.xcassets */,
 				12B45D1621FD1B0D00F3064F /* LaunchScreen.storyboard */,
@@ -233,6 +250,66 @@
 				12B45D2F21FD1B0D00F3064F /* Info.plist */,
 			);
 			path = iXFormsUITests;
+			sourceTree = "<group>";
+		};
+		12D4517522BC6585007F1760 /* Forms */ = {
+			isa = PBXGroup;
+			children = (
+				12D4517322BC5FB3007F1760 /* GSBFormListViewController.swift */,
+				125983882211312900F41566 /* GSBFormTableViewCell.swift */,
+				122BF2F322B62B7E00F81546 /* GSBFormViewController.swift */,
+			);
+			path = Forms;
+			sourceTree = "<group>";
+		};
+		12D4517622BC6590007F1760 /* Submissions */ = {
+			isa = PBXGroup;
+			children = (
+				12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */,
+			);
+			path = Submissions;
+			sourceTree = "<group>";
+		};
+		12D4517722BC65A6007F1760 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				122417B722A33220007E3D0C /* GSBSettingsViewController.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		12E2364022BCE26100180F3F /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				12E2363E22BCE0AD00180F3F /* UIColor+.swift */,
+				12E2363C22BCE05C00180F3F /* UIFont+.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		12E2364122BCE29500180F3F /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				12E2363A22BCD10100180F3F /* GSBSpinner.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		12E2364422BDEE5B00180F3F /* Groups */ = {
+			isa = PBXGroup;
+			children = (
+				12E2364222BDEE5400180F3F /* GSBGroupListViewController.swift */,
+				12E2364522BE136400180F3F /* GSBGroupTableViewCell.swift */,
+			);
+			path = Groups;
+			sourceTree = "<group>";
+		};
+		12E2364C22C831F600180F3F /* Parser */ = {
+			isa = PBXGroup;
+			children = (
+				12E2364A22C5A7B600180F3F /* GSBXFormParser.swift */,
+			);
+			path = Parser;
 			sourceTree = "<group>";
 		};
 		9B547D349FE5ED2B701B0597 /* Pods */ = {
@@ -511,8 +588,15 @@
 				1259838722053CE700F41566 /* GSBListTableViewController.swift in Sources */,
 				12B45D1021FD1B0A00F3064F /* SecondViewController.swift in Sources */,
 				122BF2F422B62B7E00F81546 /* GSBFormViewController.swift in Sources */,
+				12E2363B22BCD10100180F3F /* GSBSpinner.swift in Sources */,
 				12B45D0C21FD1B0A00F3064F /* AppDelegate.swift in Sources */,
+				12E2363D22BCE05C00180F3F /* UIFont+.swift in Sources */,
+				12E2364322BDEE5400180F3F /* GSBGroupListViewController.swift in Sources */,
+				12E2364622BE136400180F3F /* GSBGroupTableViewCell.swift in Sources */,
+				12E2364B22C5A7B600180F3F /* GSBXFormParser.swift in Sources */,
+				12E2363F22BCE0AD00180F3F /* UIColor+.swift in Sources */,
 				12BB609222AB2E39005220CE /* GSBServer.swift in Sources */,
+				12D4517422BC5FB3007F1760 /* GSBFormListViewController.swift in Sources */,
 				122417B822A33220007E3D0C /* GSBSettingsViewController.swift in Sources */,
 				125983892211312900F41566 /* GSBFormTableViewCell.swift in Sources */,
 			);

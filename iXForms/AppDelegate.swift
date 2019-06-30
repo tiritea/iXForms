@@ -31,12 +31,25 @@ enum FormState: Int, CustomStringConvertible {
     
     func color() -> UIColor {
         switch self {
-        case .open: return UIColor(hex: 0x008000)
-        case .closing: return UIColor(hex: 0xffd700)
+        case .open: return UIColor(hex: 0x008000) // html green
+        case .closing: return UIColor(hex: 0xffd700) // html gold
         case .closed: return UIColor.red
         case .unknown: return UIColor.darkGray
         }
     }
+}
+
+class Group: Object {
+    @objc dynamic var id: String!
+    @objc dynamic var name: String?
+    @objc dynamic var created: Date?
+    @objc dynamic var updated: Date?
+    @objc dynamic var lastSubmission: Date?
+    let forms = RealmOptional<Int>() // may be nil
+    let users = RealmOptional<Int>() // may be nil
+    let archived = RealmOptional<Bool>() // may be nil
+    
+    override static func primaryKey() -> String? {return "id"}
 }
 
 class XForm: Object {
@@ -49,8 +62,7 @@ class XForm: Object {
     @objc dynamic var created: Date?
     @objc dynamic var updated: Date?
     @objc dynamic var lastSubmission: Date?
-    @objc dynamic var records: NSNumber = -1 // cant use Int because might be null (-1 = unknown)
-
+    let numRecords = RealmOptional<Int>() // may be nil
     let state = RealmOptional<Int>() // FormState
 
     override static func primaryKey() -> String? {return "id"}
@@ -84,25 +96,43 @@ class XForm: Object {
 }
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, GSBListTableViewDataSource {
+class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
+    var formsViewController: GSBFormListViewController!
+    var groupsViewController: GSBGroupListViewController!
+    var submissionsViewController: GSBListTableViewController!
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         os_log("%s.%s", #file, #function)
 
-        let formsViewController = GSBListTableViewController()
+        let url = URL(string: UserDefaults.standard.string(forKey: "server") ?? "https://odk.antinod.es:443/v1")
+        //let api = UserDefaults.standard.integer(forKey: "api")
+        let api = 3
+        if (api == 3) {
+            server = GSBRESTServer(url: url)
+        }
+
+        formsViewController = GSBFormListViewController()
         formsViewController.title = "Forms"
-        formsViewController.dataSource = self
+        formsViewController.dataSource = (server as? GSBListTableViewDataSource)
         formsViewController.tableView.register(GSBFormTableViewCell.self, forCellReuseIdentifier: formsViewController.reuseIdentifier)
         let formsTab = UINavigationController(rootViewController:formsViewController)
-        //formsTab.tabBarItem = UITabBarItem(title: formsViewController.title, image: UIImage(named: "icons8-paste-33"), tag: 0)
         formsTab.tabBarItem = UITabBarItem(title: formsViewController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
         formsTab.tabBarItem.tag = 0
 
-        let submissionsViewController = UIViewController()
+        groupsViewController = GSBGroupListViewController()
+        groupsViewController.title = "Groups"
+        groupsViewController.dataSource = (server as? GSBListTableViewDataSource)
+        groupsViewController.tableView.register(GSBGroupTableViewCell.self, forCellReuseIdentifier: groupsViewController.reuseIdentifier)
+        let groupsTab = UINavigationController(rootViewController:groupsViewController)
+        groupsTab.tabBarItem = UITabBarItem(title: groupsViewController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
+        groupsTab.tabBarItem.tag = 4
+
+        submissionsViewController = GSBListTableViewController()
         submissionsViewController.title = "Submissions"
-        submissionsViewController.view.backgroundColor = UIColor.red
+        submissionsViewController.dataSource = (server as? GSBListTableViewDataSource)
+        submissionsViewController.tableView.backgroundColor = UIColor.red
         let submissionsTab = UINavigationController(rootViewController:submissionsViewController)
         submissionsTab.tabBarItem = UITabBarItem(title: submissionsViewController.title, image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
         submissionsTab.tabBarItem.tag = 1
@@ -119,32 +149,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GSBListTableViewDataSourc
         helpController.title = "Help"
 
         let mainTabController = UITabBarController();
-        mainTabController.viewControllers = [formsTab, submissionsTab, settingsController, helpController]
+        mainTabController.viewControllers = [formsTab, groupsTab, submissionsTab, settingsController, helpController]
         mainTabController.selectedViewController = settingsController;
         
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = mainTabController
         window?.makeKeyAndVisible()
         
-        if let urlString = UserDefaults.standard.string(forKey: "server"), let url = URL(string: urlString) {
-            let api = UserDefaults.standard.integer(forKey: "api")
-            currentServer = GSBServer.init(url: url, api: api)
-        }
-
         return true
-    }
-
-    // <GSBListTableViewDataSource>
-    func refresh(controller: GSBListTableViewController, completion: @escaping (Error?) -> Void) {
-        os_log("%s.%s", #file, #function)
-        
-        // TODO check which controller
-        
-        if let server = currentServer {
-            server.getFormList(groupID: "1", completion: completion)
-        } else {
-            completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "no server"]))
-        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
