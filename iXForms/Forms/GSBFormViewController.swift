@@ -202,11 +202,11 @@ class GSBFormViewController: FormViewController {
     @objc func start() {
         os_log("%s.%s", #file, #function)
         
-        if let xml = xform.xml, let parser = GSBXFormParser(xml: xml, element:"label") {
+        if let xml = xform.xml, let parser = GSBXFormParser(xform: xform, xml: xml) {
             if parser.parse() {
-                os_log("%s.%s value=%@", #file, #function, parser.value!)
+                os_log("parse() finished. %d instances %d bindings %d controls", xform.instances.count, xform.bindings.count, xform.controls.count)
             } else {
-                os_log("%s.%s parser failed", #file, #function)
+                os_log("parse() failed", #file, #function)
             }
         }
         

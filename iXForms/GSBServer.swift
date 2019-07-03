@@ -238,7 +238,14 @@ class GSBRESTServer: GSBServer, GSBListTableViewDataSource {
                     let db = try! Realm()
                     try db.write {
                         let xform = db.object(ofType: XForm.self, forPrimaryKey: result["xmlFormId"] as! String)! // must alrady exist
+                        
+                        // TEST reset parser when open form
+                        xform.instances.removeAll();
+                        xform.bindings.removeAll();
+                        xform.controls.removeAll();
+
                         self.updateFormWithDictionary(form: xform, dict: result)
+                        //db.create(XForm.self, value: xform, update: .all)
                     }
                     completion(nil) // Success!
                 } catch {

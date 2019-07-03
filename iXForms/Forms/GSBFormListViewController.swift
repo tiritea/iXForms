@@ -52,10 +52,7 @@ class GSBFormListViewController: GSBListTableViewController {
         let open = list.filter {($0 as! XForm).state.value == FormState.open.rawValue}
         let closed = list.filter {($0 as! XForm).state.value == FormState.closed.rawValue}
         let closing = list.filter {($0 as! XForm).state.value == FormState.closing.rawValue}
-        
-        header.text = String(format: "%d open, %d closed, %d closing", open.count, closed.count, closing.count)
-        //header.attributedText = NSAttributedString(format: "%d open, %d closed, %d closing", args: open.count,closed.count,closing.count)
-        header.sizeToFit()
+        header = String(format: "%d open, %d closed, %d closing", open.count, closed.count, closing.count)
     }
     
     // MARK: - Row selection

@@ -25,7 +25,7 @@ class GSBListTableViewController: UITableViewController {
     var dataSource: GSBListTableViewDataSource?
     let reuseIdentifier = "CELL"
     var db: Realm!
-    var header = UILabel()
+    var header: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,16 +36,11 @@ class GSBListTableViewController: UITableViewController {
             refreshControl!.addTarget(self, action: #selector(refresh), for: .valueChanged)
         }
         
-        header.backgroundColor = UIColor(white: 0.95, alpha: 0.9)
-        header.numberOfLines = 0
-        
         db = try! Realm()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        header.textColor = tabBarController?.tabBar.tintColor
-        // TODO safe inset to match tableview
         reload()
     }
 
@@ -84,13 +79,12 @@ class GSBListTableViewController: UITableViewController {
         return cell.initWith(object: list[indexPath.row])
     }
 
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return header
     }
 
     func refreshHeader() {
-        header.text = String(format: "%d found", list.count)
-        header.sizeToFit()
+        header = String(format: "%d found", list.count)
     }
 
 }

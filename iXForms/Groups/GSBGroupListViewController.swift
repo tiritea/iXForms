@@ -9,8 +9,6 @@
 import UIKit
 import os.log
 
-import RealmSwift
-
 class GSBGroupListViewController: GSBListTableViewController {
     
     private let dateFormat = DateFormatter()
@@ -29,11 +27,8 @@ class GSBGroupListViewController: GSBListTableViewController {
         super.reload()
     }
     
-    // MARK: - Table view data source
-
     override func refreshHeader() {
-        header.text = String(format: "%d projects", list.count)
-        header.sizeToFit()
+        header = String(format: "%d projects", list.count)
     }
     
     // MARK: - Row selection
@@ -74,5 +69,4 @@ class GSBGroupListViewController: GSBListTableViewController {
         info.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(info, animated: true)
     }
-
 }

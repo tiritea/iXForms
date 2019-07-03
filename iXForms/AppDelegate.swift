@@ -8,92 +8,7 @@
 
 import UIKit
 import os.log
-
 import RealmSwift
-
-// Realm object classes
-
-enum FormState: Int, CustomStringConvertible {
-    case open = 0
-    case closing = 1
-    case closed = 2
-    case unknown = 3
-    
-    // https://stackoverflow.com/questions/24701075
-    var description : String {
-        switch self {
-        case .open: return "Open"
-        case .closing: return "Closing"
-        case .closed: return "Closed"
-        case .unknown: return "Unknown"
-        }
-    }
-    
-    func color() -> UIColor {
-        switch self {
-        case .open: return UIColor(hex: 0x008000) // html green
-        case .closing: return UIColor(hex: 0xffd700) // html gold
-        case .closed: return UIColor.red
-        case .unknown: return UIColor.darkGray
-        }
-    }
-}
-
-class Group: Object {
-    @objc dynamic var id: String!
-    @objc dynamic var name: String?
-    @objc dynamic var created: Date?
-    @objc dynamic var updated: Date?
-    @objc dynamic var lastSubmission: Date?
-    let forms = RealmOptional<Int>() // may be nil
-    let users = RealmOptional<Int>() // may be nil
-    let archived = RealmOptional<Bool>() // may be nil
-    
-    override static func primaryKey() -> String? {return "id"}
-}
-
-class XForm: Object {
-    @objc dynamic var id: String!
-    @objc dynamic var name: String?
-    @objc dynamic var version: String?
-    @objc dynamic var xml: String?
-    @objc dynamic var xmlHash: String?
-    @objc dynamic var author: String?
-    @objc dynamic var created: Date?
-    @objc dynamic var updated: Date?
-    @objc dynamic var lastSubmission: Date?
-    let numRecords = RealmOptional<Int>() // may be nil
-    let state = RealmOptional<Int>() // FormState
-
-    override static func primaryKey() -> String? {return "id"}
-    
-    func icon() -> UIImage {
-        var image: UIImage?
-        switch self.state.value {
-        case FormState.open.rawValue:
-            if (self.xml != nil) { // on device
-                image = UIImage(named: "icons8-check-mark-symbol-filled-30")
-            } else { // must download from server
-                image = UIImage(named: "icons8-download-from-cloud-filled-30")
-            }
-        case FormState.closing.rawValue:
-            if (self.xml != nil) { // on device but can still be submitted
-                image = UIImage(named: "icons8-check-mark-symbol-filled-30")
-            } else { // on server and cannot be downloaded
-                image = UIImage(named: "icons8-cloud-cross-filled-30")
-            }
-        case FormState.closed.rawValue:
-            if (self.xml != nil) { // on device
-                image = UIImage(named: "icons8-cancel-filled-30")
-            } else { // on server
-                image = UIImage(named: "icons8-cloud-cross-filled-30")
-            }
-        default:
-            assertionFailure("unrecognized form state")
-        }
-        return image!.withRenderingMode(.alwaysTemplate)
-    }
-}
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -112,7 +27,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if (api == 3) {
             server = GSBRESTServer(url: url)
         }
-
+        
+        // Current database size
+        let _ = try! Realm()
+        if let path = Realm.Configuration.defaultConfiguration.fileURL, let value = try? path.resourceValues(forKeys: [.fileSizeKey]) {
+            os_log("Realm database = %dkB", value.fileSize!/1024)
+        }
+        
         formsViewController = GSBFormListViewController()
         formsViewController.title = "Forms"
         formsViewController.dataSource = (server as? GSBListTableViewDataSource)
