@@ -1,5 +1,5 @@
 //
-//  GSBGroupTableViewCell.swift
+//  GSBProjectTableViewCell.swift
 //  iXForms
 //
 //  Created by MBS GoGet on 11/02/19.
@@ -9,22 +9,22 @@
 import UIKit
 import os.log
 
-class GSBGroupTableViewCell: UITableViewCell, GSBListTableViewCell {
+class GSBProjectTableViewCell: UITableViewCell, GSBListTableViewCell {
     
     // GSBListTableViewCell
     func initWith(object: Any) -> UITableViewCell {
-        let group: Group = object as! Group
+        let project: Project = object as! Project
         
-        if (group.name != nil && group.name!.count > 0) {
-            textLabel?.text = group.id + ". " + group.name!
+        if (project.name != nil && project.name!.count > 0) {
+            textLabel?.text = project.id + ". " + project.name!
             textLabel?.font = textLabel?.font.regular()
         } else {
-            textLabel?.text = group.id + ". " + "untitled"
+            textLabel?.text = project.id + ". " + "untitled"
             textLabel?.font = textLabel?.font.italic()
         }
         
-        if (group.forms != nil) { // RealmOptional
-            let forms = group.forms.value!
+        if (project.forms != nil) { // RealmOptional
+            let forms = project.forms.value!
             detailTextLabel?.text = String(forms) + " form" + ((forms == 1) ? "" : "s")
         } else {
             detailTextLabel?.text = "—" // em-dash; not yet known

@@ -24,5 +24,15 @@ extension UIColor {
             blue: hex & 0xFF
         )
     }
+    
+    // https://stackoverflow.com/questions/19032940
+    static var systemBlue: UIColor {
+        return UIButton(type: .system).tintColor
+    }
+    
+    static var systemDetailTextLabel: UIColor {
+        return UITableViewCell.init(style: .value1, reuseIdentifier: nil).detailTextLabel!.textColor
+    }
+
 }
 

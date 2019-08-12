@@ -1,5 +1,5 @@
 //
-//  GSBGroupListViewController.swift
+//  GSBProjectListViewController.swift
 //  iXForms
 //
 //  Created by MBS GoGet on 2/02/19.
@@ -9,7 +9,7 @@
 import UIKit
 import os.log
 
-class GSBGroupListViewController: GSBListTableViewController {
+class GSBProjectListViewController: GSBListTableViewController {
     
     private let dateFormat = DateFormatter()
     
@@ -22,7 +22,7 @@ class GSBGroupListViewController: GSBListTableViewController {
 
     override func reload() {
         os_log("%s.%s", #file, #function)
-        list = Array(db.objects(Group.self))
+        list = Array(db.objects(Project.self))
         os_log("%s.%s num groups %lu", #file, #function,list.count)
         super.reload()
     }
@@ -39,28 +39,28 @@ class GSBGroupListViewController: GSBListTableViewController {
      }
     
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
-        let group = list[indexPath.row] as! Group
+        let project = list[indexPath.row] as! Project
         
         let message = NSMutableAttributedString()
         let style = NSMutableParagraphStyle()
         style.alignment = .left
 
-        if (group.created != nil) {
-            let created = dateFormat.string(from: group.created!)
+        if (project.created != nil) {
+            let created = dateFormat.string(from: project.created!)
             message.append(NSAttributedString.init(string: "\nCreated: \t\t" + created, attributes: [.paragraphStyle: style]))
         }
         
-        if (group.updated != nil) {
-            let updated = dateFormat.string(from: group.updated!)
+        if (project.updated != nil) {
+            let updated = dateFormat.string(from: project.updated!)
             message.append(NSAttributedString.init(string: "\nUpdated: \t\t" + updated, attributes: [.paragraphStyle: style]))
         }
         
-        if (group.users != nil) { // RealmOptional
-            message.append(NSAttributedString.init(string: "\nApp Users: \t" + String(group.users.value!), attributes: [.paragraphStyle: style]))
+        if (project.users != nil) { // RealmOptional
+            message.append(NSAttributedString.init(string: "\nApp Users: \t" + String(project.users.value!), attributes: [.paragraphStyle: style]))
         }
         
-        if (group.archived != nil) { // RealmOptional
-            let archived = (group.archived.value == true) ? "Yes" : "No"
+        if (project.archived != nil) { // RealmOptional
+            let archived = (project.archived.value == true) ? "Yes" : "No"
             message.append(NSAttributedString.init(string: "\nArchived: \t\t" + archived, attributes: [.paragraphStyle: style]))
         }
         

@@ -8,54 +8,77 @@
 
 import UIKit
 import os.log
+
 import RealmSwift
+
+// MARK : global constants
+let APP = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? ""
+let DATETIMEFORMAT = "yyyy-MM-dd'T'HH:mm:ss.SZ"
+let DATEFORMAT = "yyyy-MM-dd"
+let TIMEFORMAT = "HH:mm:ss.SZ"
+let DEFAULTAPI: ServerAPI = .openrosa_aggregate
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
-    var formsViewController: GSBFormListViewController!
-    var groupsViewController: GSBGroupListViewController!
-    var submissionsViewController: GSBListTableViewController!
+    var formsController: GSBFormListViewController!
+    var projectsController: GSBProjectListViewController!
+    var submissionsController: GSBListTableViewController!
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        os_log("%s.%s", #file, #function)
+        os_log("%s.%s APP=%s", #file, #function, APP)
 
-        let url = URL(string: UserDefaults.standard.string(forKey: "server") ?? "https://odk.antinod.es:443/v1")
-        //let api = UserDefaults.standard.integer(forKey: "api")
-        let api = 3
-        if (api == 3) {
-            server = GSBRESTServer(url: url)
+        // Check for previously saved server
+        let api: ServerAPI = ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api")) ?? DEFAULTAPI // note: UserDefaults will return 0 if key doesnt exist
+        UserDefaults.standard.set(api.rawValue, forKey: "api")
+        
+        let url: URL?
+        if let previous = UserDefaults.standard.string(forKey: "server") {
+            url = URL(string: previous)
+        } else {
+            url = api.server // use default server
+        }
+        UserDefaults.standard.set(url?.absoluteString, forKey: "server")
+
+        switch api {
+        case .openrosa_aggregate: server = GSBOpenRosaServer(url: url)
+        case .openrosa_central: server = GSBOpenRosaServer(url: url)
+        case .openrosa_kobo: server = GSBOpenRosaServer(url: url) // must append username after login
+        case .rest_central : server = GSBRESTServer(url: url)
+        case .rest_gomobile: server = GSBRESTServer(url: url)
         }
         
-        // Current database size
+        // Show current database size
         let _ = try! Realm()
         if let path = Realm.Configuration.defaultConfiguration.fileURL, let value = try? path.resourceValues(forKeys: [.fileSizeKey]) {
             os_log("Realm database = %dkB", value.fileSize!/1024)
         }
         
-        formsViewController = GSBFormListViewController()
-        formsViewController.title = "Forms"
-        formsViewController.dataSource = (server as? GSBListTableViewDataSource)
-        formsViewController.tableView.register(GSBFormTableViewCell.self, forCellReuseIdentifier: formsViewController.reuseIdentifier)
-        let formsTab = UINavigationController(rootViewController:formsViewController)
-        formsTab.tabBarItem = UITabBarItem(title: formsViewController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
+        ValueTransformer.setValueTransformer(GSBGeopointTransformer(), forName: NSValueTransformerName("GSBGeopointTransformer"))
+
+        formsController = GSBFormListViewController()
+        formsController.title = "Forms"
+        formsController.dataSource = server
+        formsController.tableView.register(GSBFormTableViewCell.self, forCellReuseIdentifier: formsController.reuseIdentifier)
+        let formsTab = UINavigationController(rootViewController:formsController)
+        formsTab.tabBarItem = UITabBarItem(title: formsController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
         formsTab.tabBarItem.tag = 0
 
-        groupsViewController = GSBGroupListViewController()
-        groupsViewController.title = "Groups"
-        groupsViewController.dataSource = (server as? GSBListTableViewDataSource)
-        groupsViewController.tableView.register(GSBGroupTableViewCell.self, forCellReuseIdentifier: groupsViewController.reuseIdentifier)
-        let groupsTab = UINavigationController(rootViewController:groupsViewController)
-        groupsTab.tabBarItem = UITabBarItem(title: groupsViewController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
-        groupsTab.tabBarItem.tag = 4
+        projectsController = GSBProjectListViewController()
+        projectsController.title = "Groups"
+        projectsController.dataSource = server
+        projectsController.tableView.register(GSBProjectTableViewCell.self, forCellReuseIdentifier: projectsController.reuseIdentifier)
+        let projectsTab = UINavigationController(rootViewController:projectsController)
+        projectsTab.tabBarItem = UITabBarItem(title: projectsController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
+        projectsTab.tabBarItem.tag = 4
 
-        submissionsViewController = GSBListTableViewController()
-        submissionsViewController.title = "Submissions"
-        submissionsViewController.dataSource = (server as? GSBListTableViewDataSource)
-        submissionsViewController.tableView.backgroundColor = UIColor.red
-        let submissionsTab = UINavigationController(rootViewController:submissionsViewController)
-        submissionsTab.tabBarItem = UITabBarItem(title: submissionsViewController.title, image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
+        submissionsController = GSBListTableViewController()
+        submissionsController.title = "Submissions"
+        submissionsController.dataSource = server
+        submissionsController.tableView.backgroundColor = UIColor.red
+        let submissionsTab = UINavigationController(rootViewController:submissionsController)
+        submissionsTab.tabBarItem = UITabBarItem(title: submissionsController.title, image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
         submissionsTab.tabBarItem.tag = 1
         
         let settingsController = GSBSettingsViewController()
@@ -70,7 +93,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         helpController.title = "Help"
 
         let mainTabController = UITabBarController();
-        mainTabController.viewControllers = [formsTab, groupsTab, submissionsTab, settingsController, helpController]
+        mainTabController.viewControllers = [formsTab, projectsTab, submissionsTab, settingsController, helpController]
         mainTabController.selectedViewController = settingsController;
         
         window = UIWindow(frame: UIScreen.main.bounds)

@@ -26,8 +26,10 @@ enum XFormElement: String, CaseIterable {
     case select = "select"
     case item = "item"
     case upload = "upload"
-    // range
-    // trigger
+    case range = "range"
+    case trigger = "trigger"
+    case secret = "secret"
+    case rank = "rank"
 }
 
 private class GSBParserDelegate: NSObject, XMLParserDelegate {
@@ -107,21 +109,21 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
             if elementName == XFormElement.instance.rawValue {
                 gsbparser.isParsingInstance = false
                 
-                // Add instance to form
-                let instanceXML = markup()
+                // Add this instance to form
+                let instanceXML = inner // Use inner to remove enclosing <instance>...</instance> because nodeset root starts with child (eg usually /data/...)
                 os_log("adding instance = %s", instanceXML)
                 let db = try! Realm()
                 try! db.write {
                     gsbparser.form.instances.append(instanceXML)
                 }
             } else {
-                // continue ignoring sub-elements and just add them to current instance
+                // Do nothing! Ignore sub-elements and just add them to current instance...
             }
         } else {
-            // Finished element so process as required
+            // Finished parsing instance so process this element accordingly
             switch elementName {
-            case XFormElement.binding.rawValue :
-                // Add new binding to form
+                
+            case XFormElement.binding.rawValue:
                 let db = try! Realm()
                 try! db.write {
                     let binding = XFormBinding()
@@ -152,6 +154,7 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                         case ControlType.binary.description : binding.type.value = ControlType.binary.rawValue
                             
                         // ODK-specific binding types
+                        case ControlType.rank.description : binding.type.value = ControlType.rank.rawValue
                         case "select", "select1" : binding.type.value = ControlType.string.rawValue
                         case "int" : binding.type.value = ControlType.integer.rawValue
                             
@@ -163,83 +166,143 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                     os_log("adding binding = %@", binding)
                     gsbparser.form.bindings.append(binding)
                 }
-                
-            // input control
-            case XFormElement.input.rawValue :
-                // Add new control to form
-                
-                // Find associated binding to determine input control type
-                var binding: XFormBinding?
-                if let ref = attributes!["ref"] {
-                    binding = (gsbparser.form.bindings.filter { $0.nodeset == ref }).first
-                } else if let bind = attributes!["bind"] {
-                    binding = (gsbparser.form.bindings.filter { $0.id == bind }).first
-                }
-                
-                if binding != nil {
-                    let type = ControlType(rawValue: binding!.type.value!)!
-                    let control = XFormControl(attributes: attributes!, type: type)
-                    let db = try! Realm()
-                    try! db.write {
-                        os_log("adding control = %@", control)
-                        gsbparser.form.controls.append(control)
-                    }
-                } else {
-                    os_log("no binding for control")
-                    parser.abortParsing()
-                }
-                
-            // select1 control
-            case XFormElement.selectone.rawValue :
-                // Add new select1 control to form
-                let control = XFormControl(attributes: attributes!, type: ControlType.selectone)
-                // TODO add choices to control
-                let db = try! Realm()
-                try! db.write {
-                    os_log("adding select1 control (%d items) = %@", items.count, control)
-                    gsbparser.form.controls.append(control)
-                }
-                
-            // select control
-            case XFormElement.select.rawValue :
-                // Add new select control to form
-                let control = XFormControl(attributes: attributes!, type: ControlType.select)
-                // TODO add choices to control
-                let db = try! Realm()
-                try! db.write {
-                    os_log("adding select control (%d items) = %@", items.count, control)
-                    gsbparser.form.controls.append(control)
-                }
-                
+            
+            // Add as label attribute to parent element
             case XFormElement.label.rawValue :
-                // Add as label attribute to parent element
                 parentElement?.attributes!["label"] = cdata
-                
+            
+            // Add as hint attribute to parent element
             case XFormElement.hint.rawValue :
-                // Add as hint attribute to parent element
                 parentElement?.attributes!["hint"] = cdata
-                
+            
+            // Add as value attribute to parent item element
             case XFormElement.value.rawValue :
-                // Add as value attribute to parent item element
                 parentElement?.attributes!["value"] = cdata
-  
+            
+            // Add new item to parent select/select1 element's choice list
             case XFormElement.item.rawValue :
-                // Add new item to parent select/select1 element's choice list
-                let choice = ["label" : attributes!["label"] ?? "", "value" : attributes!["value"] ?? ""]
+                let choice = ["label" : attributes!["label"] ?? "", "value" : attributes!["value"] ?? ""] // are both select labels and values required or optional?
                 os_log("adding choice = %@", choice)
                 parentElement?.items.append(choice)
-                
-            // upload control
-            //case XFormElement.upload.rawValue :
-                
-            // case XFormElement.group.rawValue :
-            // case XFormElement.repeatgroup.rawValue :
-                
-            default:
-                os_log("unrecognized element: %s", elementName)
-                //parser.abortParsing()
-            }
-        }
+            
+            case "title" :
+                os_log("title = ", cdata)
+                // TODO set form title
+
+            default :
+                // Must be either a control, group or repeat group. Find its associated binding
+                let bindings = gsbparser.form.bindings // TODO - save bindings (as static?) because they wont change thereafter
+                let binding: XFormBinding?
+                if let ref = attributes!["ref"] {
+                    binding = (bindings.filter { $0.nodeset == ref }).first // find binding against same nodeset
+                } else if let bind = attributes!["bind"] {
+                    binding = (bindings.filter { $0.id == bind }).first // lookup binding id
+                } else {
+                    binding = nil
+                }
+
+                switch elementName {
+                    
+                // ---------- input control
+                case XFormElement.input.rawValue :
+                    let type = ControlType(rawValue: binding!.type.value!) // determine input control type from the associated binding type
+                    let control = XFormControl(attributes: attributes!, type: type!, binding: binding!)
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding input control = %@", control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- select1 control
+                case XFormElement.selectone.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.selectone, binding: binding)
+                    for item in items {
+                        control.items.append(XFormItem(label: item["label"]!, value: item["value"]!))
+                    }
+                    
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding select1 control (%d items) = %@", control.items.count, control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- select control
+                case XFormElement.select.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.select, binding: binding)
+                    for item in items {
+                        control.items.append(XFormItem(label: item["label"]!, value: item["value"]!))
+                    }
+                    
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding select control (%d items) = %@", control.items.count, control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- rank control
+                case XFormElement.rank.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.rank, binding: binding)
+                    for item in items {
+                        control.items.append(XFormItem(label: item["label"]!, value: item["value"]!))
+                    }
+                    
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding rank control (%d items) = %@", control.items.count, control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- range control
+                case XFormElement.range.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.range, binding: binding)
+                    control.min.value = Float(attributes!["start"] as String!)
+                    control.max.value = Float(attributes!["end"] as String!)
+                    control.inc.value = Float(attributes!["step"] as String!)
+                    
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding range control = %@", control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- trigger control
+                case XFormElement.trigger.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.trigger, binding: binding)
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding trigger control = %@", control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- upload (binary) control
+                case XFormElement.upload.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.binary, binding: binding)
+                    control.mediatype = attributes!["mediatype"]
+                    // TODO different control types for each mediatype?
+                    
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding upload control = %@", control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // ---------- secret control
+                case XFormElement.secret.rawValue :
+                    let control = XFormControl(attributes: attributes!, type: ControlType.secret, binding: binding)
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding secret control = %@", control)
+                        gsbparser.form.controls.append(control)
+                    }
+                    
+                // TODO: case XFormElement.group.rawValue :
+                // TODO: case XFormElement.repeatgroup.rawValue :
+
+                default:
+                    os_log("unrecognized element: %s", elementName)
+                } // end control switch
+            } // end element switch
+        } // end else
         
         // Add this element to parent's inner markup
         parentElement?.inner += markup()
@@ -253,6 +316,7 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
         cdata += string
         inner += string
     }
+    
 }
 
 class GSBXFormParser: XMLParser {
@@ -269,11 +333,12 @@ class GSBXFormParser: XMLParser {
             self.form = xform
             
             // Must persist strong reference because XMLParser.delegate is weak. https://stackoverflow.com/questions/51099860
-            parserDelegate = GSBParserDelegate(element:"") // FIX make nil
+            parserDelegate = GSBParserDelegate(element:"") // FIX make optional?
             self.delegate = parserDelegate
         } else {
             return nil
         }
     }
+    
 }
 

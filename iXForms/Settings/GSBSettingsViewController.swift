@@ -15,7 +15,33 @@ class GSBSettingsViewController: FormViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-                
+        
+        // Remove IntRow separator (eg "1,234" -> "1234")
+        IntRow.defaultCellSetup = { (cell, row) in
+            row.useFormatterDuringInput = true
+            let formatter = NumberFormatter()
+            formatter.groupingSeparator = ""
+            row.formatter = formatter
+        }
+
+        // Minimize segment width - https://github.com/xmartlabs/Eureka/issues/973
+        SegmentedRow<String>.defaultCellSetup = { (cell, row) in
+            cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+            cell.segmentedControl.apportionsSegmentWidthsByContent = true
+        }
+
+        ButtonRow.defaultCellSetup = { (cell, row) in
+            cell.tintColor = UIColor.white
+            cell.textLabel?.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline) // bold
+            cell.backgroundColor = UIColor.red
+        }
+        
+        TextRow.defaultCellSetup = { (cell, row) in
+            cell.textField.keyboardType = .asciiCapable
+            cell.textField.autocapitalizationType = .none
+            cell.textField.autocorrectionType = .no
+        }
+
         // ---------- Client section ----------
         
         var section = Section("App")
@@ -63,28 +89,23 @@ class GSBSettingsViewController: FormViewController {
             $0.placeholder = "hostname/path"
             $0.value = url?.host
             }
-            .cellSetup { cell, row in
-                cell.textField.keyboardType = .asciiCapable
-                cell.textField.autocapitalizationType = .none
-                cell.textField.autocorrectionType = .no
-            }
             .onChange { row in
                 self.updateURL()
             }
         )
         
+        // Note: ServerAPI enum starts a 1!
         section.append(ActionSheetRow<String>("api") {
             $0.title = "API"
-            $0.options = ServerAPI.allCases.map{ $0.rawValue }
+            $0.options = ServerAPI.allCases.map{ $0.description }
             
-            let api = UserDefaults.standard.integer(forKey: "api") // will default to 0 if not found
-            $0.value = $0.options![api]
+            let api = UserDefaults.standard.integer(forKey: "api")
+            $0.value = $0.options![api-1]
             }
             .onChange { row in
                 // save to defaults
                 if let selected = row.value, let index = row.options!.index(of: selected) {
-                    UserDefaults.standard.set(index, forKey: "api")
-                    os_log("api=%s [%lu]", selected, index)
+                    UserDefaults.standard.set(index+1, forKey: "api")
                 }
             }
         )
@@ -94,16 +115,12 @@ class GSBSettingsViewController: FormViewController {
             $0.title = "Protocol"
             $0.value = url?.scheme
             }
-            .cellSetup { cell, row in
-                // Minimize segment width - https://github.com/xmartlabs/Eureka/issues/973
-                cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-            }
             .onChange { row in
                 // Update title: http=insecure https=secure
                 row.title = (row.value == "https") ? "Protocol (secure)" :  "Protocol (insecure)"
                 row.updateCell()
                 
-                // Update port: http=80 https=443
+                // Update port: default http=80 or https=443
                 let port = self.form.rowBy(tag: "port") as! IntRow
                 port.value = (row.value == "https") ? 443 : 80
                 port.updateCell()
@@ -115,12 +132,6 @@ class GSBSettingsViewController: FormViewController {
         section.append(IntRow("port") {
             $0.title = "Port"
             $0.value = url?.port
-            
-            // remove separator (eg "1,234" -> "1234")
-            $0.useFormatterDuringInput = true
-            let formatter = NumberFormatter()
-            formatter.groupingSeparator = ""
-            $0.formatter = formatter
             }
             .onChange { row in
                 self.updateURL()
@@ -134,11 +145,6 @@ class GSBSettingsViewController: FormViewController {
 
         section.append(ButtonRow("login") {
             $0.title = "Login"
-            }
-            .cellSetup { cell, row in
-                cell.tintColor = UIColor.white
-                cell.textLabel?.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline) // bold
-                cell.backgroundColor = UIColor.red
             }
             .onCellSelection { cell, row in
                 self.login()

@@ -9,7 +9,8 @@ target 'iXForms' do
   pod 'RealmSwift'
   pod 'Eureka'
   pod 'KeychainSwift', '~> 16.0'
-
+  pod 'XMLMapper'
+  
   target 'iXFormsTests' do
     inherit! :search_paths
     # Pods for testing

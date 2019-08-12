@@ -9,6 +9,7 @@
 import os.log
 
 import Eureka
+import RealmSwift
 
 class GSBFormViewController: FormViewController {
     
@@ -170,6 +171,7 @@ class GSBFormViewController: FormViewController {
 
         section.append(ButtonRow("start") {
             $0.title = "Start New Form"
+            $0.disabled = Condition(booleanLiteral: xform.xml == nil) // form hasnt been downloaded yet
             }
             .cellSetup { cell, row in
                 cell.tintColor = UIColor.white
@@ -202,15 +204,31 @@ class GSBFormViewController: FormViewController {
     @objc func start() {
         os_log("%s.%s", #file, #function)
         
-        if let xml = xform.xml, let parser = GSBXFormParser(xform: xform, xml: xml) {
-            if parser.parse() {
-                os_log("parse() finished. %d instances %d bindings %d controls", xform.instances.count, xform.bindings.count, xform.controls.count)
+        // Absence of any instance(s) means form has not been parsed
+        if xform.instances.count == 0 {
+            // Presence of xml means form has been downloaded and can be parsed
+            if let xml = xform.xml, let parser = GSBXFormParser(xform: xform, xml: xml) {
+                os_log("parsing form...")
+                if (parser.parse() == false) {
+                    os_log("parse() failed")
+                    return
+                }
             } else {
-                os_log("parse() failed", #file, #function)
+                os_log("xml form definition not found")
+                return
             }
         }
-        
-        // TODO
+        os_log("form has %d instances, %d bindings, %d controls", xform.instances.count, xform.bindings.count, xform.controls.count)
+
+        let db = try! Realm()
+        try! db.write {
+            let submission = XFormSubmission.init(xform: xform)
+            db.create(XFormSubmission.self, value: submission, update: .all)
+            os_log("new submission id = %s",submission.id)
+            
+            let xformController = GSBXFormController(submission)
+            navigationController?.pushViewController(xformController, animated: true)
+        }
     }
 
 }

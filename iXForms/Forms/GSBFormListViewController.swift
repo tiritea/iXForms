@@ -13,7 +13,7 @@ import RealmSwift
 
 class GSBFormListViewController: GSBListTableViewController {
     
-    let groupID = "1"
+    let projectID = "1"
     
     private let dateFormat = DateFormatter()
     
@@ -62,9 +62,9 @@ class GSBFormListViewController: GSBListTableViewController {
         
         if (form.xml == nil) {
             GSBSpinner.shared.start()
-            server!.getForm(formID: form.id, groupID: groupID, completion: { error in
-                let formController = GSBFormViewController(form)
+            server!.getForm(formID: form.id, projectID: projectID, completion: { error in
                 DispatchQueue.main.async {
+                    let formController = GSBFormViewController(form)
                     self.navigationController?.pushViewController(formController, animated: true)
                     GSBSpinner.shared.stop()
                     tableView.deselectRow(at: indexPath, animated: true)

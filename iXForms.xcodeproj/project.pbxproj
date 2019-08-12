@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		0D7B090DEBF258876E3BA702 /* Pods_iXFormsTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0800E85E872321E1AF4C41FE /* Pods_iXFormsTests.framework */; };
+		12061EB122F662A9008D7BAB /* icons8-document-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 12061EB022F662A9008D7BAB /* icons8-document-33@3x.png */; };
+		12061EB322F662FA008D7BAB /* icons8-barcode-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 12061EB222F662F9008D7BAB /* icons8-barcode-33@3x.png */; };
+		12061EB522F663B4008D7BAB /* icons8-compass-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 12061EB422F663B3008D7BAB /* icons8-compass-33@3x.png */; };
 		122417B822A33220007E3D0C /* GSBSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 122417B722A33220007E3D0C /* GSBSettingsViewController.swift */; };
 		122BF2E222AE5F9800F81546 /* icons8-cloud-cross-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2E122AE5F9800F81546 /* icons8-cloud-cross-filled-30@3x.png */; };
 		122BF2E422AE5FB100F81546 /* icons8-cancel-filled-30@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 122BF2E322AE5FB100F81546 /* icons8-cancel-filled-30@3x.png */; };
@@ -30,6 +33,9 @@
 		1259838D2211435500F41566 /* icons8-paste-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1259838C2211435500F41566 /* icons8-paste-33@3x.png */; };
 		1259838F2211444600F41566 /* icons8-documents-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1259838E2211444600F41566 /* icons8-documents-33@3x.png */; };
 		125983912211489B00F41566 /* icons8-settings-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 125983902211489B00F41566 /* icons8-settings-33@3x.png */; };
+		127919EB22E5AB3400EB8A80 /* icons8-camera-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 127919EA22E5AB3400EB8A80 /* icons8-camera-33@3x.png */; };
+		127919EF22E5B02E00EB8A80 /* icons8-video-call-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 127919EE22E5B02E00EB8A80 /* icons8-video-call-33@3x.png */; };
+		127919F122E5B0BB00EB8A80 /* icons8-voice-33@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 127919F022E5B0BB00EB8A80 /* icons8-voice-33@3x.png */; };
 		12B45D0C21FD1B0A00F3064F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B45D0B21FD1B0A00F3064F /* AppDelegate.swift */; };
 		12B45D1021FD1B0A00F3064F /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */; };
 		12B45D1321FD1B0A00F3064F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 12B45D1121FD1B0A00F3064F /* Main.storyboard */; };
@@ -42,10 +48,17 @@
 		12E2363B22BCD10100180F3F /* GSBSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2363A22BCD10100180F3F /* GSBSpinner.swift */; };
 		12E2363D22BCE05C00180F3F /* UIFont+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2363C22BCE05C00180F3F /* UIFont+.swift */; };
 		12E2363F22BCE0AD00180F3F /* UIColor+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2363E22BCE0AD00180F3F /* UIColor+.swift */; };
-		12E2364322BDEE5400180F3F /* GSBGroupListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364222BDEE5400180F3F /* GSBGroupListViewController.swift */; };
-		12E2364622BE136400180F3F /* GSBGroupTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364522BE136400180F3F /* GSBGroupTableViewCell.swift */; };
+		12E2364322BDEE5400180F3F /* GSBProjectListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364222BDEE5400180F3F /* GSBProjectListViewController.swift */; };
+		12E2364622BE136400180F3F /* GSBProjectTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364522BE136400180F3F /* GSBProjectTableViewCell.swift */; };
 		12E2364B22C5A7B600180F3F /* GSBXFormParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364A22C5A7B600180F3F /* GSBXFormParser.swift */; };
 		12E2365022C9868E00180F3F /* RealmDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2364F22C9868E00180F3F /* RealmDB.swift */; };
+		12E2365322CC99FA00180F3F /* GSBXFormController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2365222CC99FA00180F3F /* GSBXFormController.swift */; };
+		12E2365822CCB1EA00180F3F /* CustomCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2365722CCB1EA00180F3F /* CustomCells.swift */; };
+		12E2365C22CCB2E400180F3F /* FloatLabelTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2365B22CCB2E400180F3F /* FloatLabelTextField.swift */; };
+		12E2365F22CCB6E000180F3F /* ImageRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2365E22CCB6E000180F3F /* ImageRow.swift */; };
+		12E2366122CCB6E400180F3F /* ImagePickerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2366022CCB6E400180F3F /* ImagePickerController.swift */; };
+		12E2366322D022CF00180F3F /* GSBRESTServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2366222D022CF00180F3F /* GSBRESTServer.swift */; };
+		12E2366522D02AEB00180F3F /* GSBOpenRosaServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E2366422D02AEB00180F3F /* GSBOpenRosaServer.swift */; };
 		45CCABEA3E74800994B161BA /* Pods_iXFormsUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBD300BA13BE4065F80625BB /* Pods_iXFormsUITests.framework */; };
 		8B8C4C60AE0DCDF935A7A70C /* Pods_iXForms.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 463842BDD45B16923A9CB75F /* Pods_iXForms.framework */; };
 /* End PBXBuildFile section */
@@ -69,6 +82,9 @@
 
 /* Begin PBXFileReference section */
 		0800E85E872321E1AF4C41FE /* Pods_iXFormsTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iXFormsTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		12061EB022F662A9008D7BAB /* icons8-document-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-document-33@3x.png"; sourceTree = "<group>"; };
+		12061EB222F662F9008D7BAB /* icons8-barcode-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-barcode-33@3x.png"; sourceTree = "<group>"; };
+		12061EB422F663B3008D7BAB /* icons8-compass-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-compass-33@3x.png"; sourceTree = "<group>"; };
 		122417B722A33220007E3D0C /* GSBSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBSettingsViewController.swift; sourceTree = "<group>"; };
 		122BF2E122AE5F9800F81546 /* icons8-cloud-cross-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-cloud-cross-filled-30@3x.png"; sourceTree = "<group>"; };
 		122BF2E322AE5FB100F81546 /* icons8-cancel-filled-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-cancel-filled-30@3x.png"; sourceTree = "<group>"; };
@@ -91,6 +107,9 @@
 		1259838C2211435500F41566 /* icons8-paste-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-paste-33@3x.png"; sourceTree = "<group>"; };
 		1259838E2211444600F41566 /* icons8-documents-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-documents-33@3x.png"; sourceTree = "<group>"; };
 		125983902211489B00F41566 /* icons8-settings-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-settings-33@3x.png"; sourceTree = "<group>"; };
+		127919EA22E5AB3400EB8A80 /* icons8-camera-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-camera-33@3x.png"; sourceTree = "<group>"; };
+		127919EE22E5B02E00EB8A80 /* icons8-video-call-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-video-call-33@3x.png"; sourceTree = "<group>"; };
+		127919F022E5B0BB00EB8A80 /* icons8-voice-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-voice-33@3x.png"; sourceTree = "<group>"; };
 		12B45D0821FD1B0A00F3064F /* iXForms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iXForms.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		12B45D0B21FD1B0A00F3064F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
@@ -109,10 +128,17 @@
 		12E2363A22BCD10100180F3F /* GSBSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBSpinner.swift; sourceTree = "<group>"; };
 		12E2363C22BCE05C00180F3F /* UIFont+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+.swift"; sourceTree = "<group>"; };
 		12E2363E22BCE0AD00180F3F /* UIColor+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+.swift"; sourceTree = "<group>"; };
-		12E2364222BDEE5400180F3F /* GSBGroupListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBGroupListViewController.swift; sourceTree = "<group>"; };
-		12E2364522BE136400180F3F /* GSBGroupTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBGroupTableViewCell.swift; sourceTree = "<group>"; };
+		12E2364222BDEE5400180F3F /* GSBProjectListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBProjectListViewController.swift; sourceTree = "<group>"; };
+		12E2364522BE136400180F3F /* GSBProjectTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBProjectTableViewCell.swift; sourceTree = "<group>"; };
 		12E2364A22C5A7B600180F3F /* GSBXFormParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBXFormParser.swift; sourceTree = "<group>"; };
 		12E2364F22C9868E00180F3F /* RealmDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmDB.swift; sourceTree = "<group>"; };
+		12E2365222CC99FA00180F3F /* GSBXFormController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBXFormController.swift; sourceTree = "<group>"; };
+		12E2365722CCB1EA00180F3F /* CustomCells.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomCells.swift; sourceTree = "<group>"; };
+		12E2365B22CCB2E400180F3F /* FloatLabelTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FloatLabelTextField.swift; sourceTree = "<group>"; };
+		12E2365E22CCB6E000180F3F /* ImageRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageRow.swift; sourceTree = "<group>"; };
+		12E2366022CCB6E400180F3F /* ImagePickerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePickerController.swift; sourceTree = "<group>"; };
+		12E2366222D022CF00180F3F /* GSBRESTServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBRESTServer.swift; sourceTree = "<group>"; };
+		12E2366422D02AEB00180F3F /* GSBOpenRosaServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GSBOpenRosaServer.swift; sourceTree = "<group>"; };
 		2450511BE370DA6059737A55 /* Pods-iXFormsUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iXFormsUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-iXFormsUITests/Pods-iXFormsUITests.release.xcconfig"; sourceTree = "<group>"; };
 		463842BDD45B16923A9CB75F /* Pods_iXForms.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iXForms.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5252CF089560365CEE4A8A5C /* Pods-iXForms.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iXForms.release.xcconfig"; path = "Pods/Target Support Files/Pods-iXForms/Pods-iXForms.release.xcconfig"; sourceTree = "<group>"; };
@@ -186,6 +212,12 @@
 				122BF30722B8357900F81546 /* icons8-smartphone-tablet-filled-90.png */,
 				122BF30322B8348C00F81546 /* icons8-download-30@3x.png */,
 				122BF30522B834BC00F81546 /* icons8-upload-30@3x.png */,
+				127919EA22E5AB3400EB8A80 /* icons8-camera-33@3x.png */,
+				127919EE22E5B02E00EB8A80 /* icons8-video-call-33@3x.png */,
+				12061EB022F662A9008D7BAB /* icons8-document-33@3x.png */,
+				127919F022E5B0BB00EB8A80 /* icons8-voice-33@3x.png */,
+				12061EB222F662F9008D7BAB /* icons8-barcode-33@3x.png */,
+				12061EB422F663B3008D7BAB /* icons8-compass-33@3x.png */,
 				122BF2F122B61BAB00F81546 /* tabs */,
 				122BF2F222B61BCE00F81546 /* status */,
 			);
@@ -217,17 +249,18 @@
 		12B45D0A21FD1B0A00F3064F /* iXForms */ = {
 			isa = PBXGroup;
 			children = (
-				12E2365122C996BB00180F3F /* Database */,
-				12E2364C22C831F600180F3F /* Parser */,
+				12E2365222CC99FA00180F3F /* GSBXFormController.swift */,
 				12B45D0B21FD1B0A00F3064F /* AppDelegate.swift */,
 				12BB609122AB2E39005220CE /* GSBServer.swift */,
-				1259838622053CE700F41566 /* GSBListTableViewController.swift */,
+				12E2366422D02AEB00180F3F /* GSBOpenRosaServer.swift */,
+				12E2366222D022CF00180F3F /* GSBRESTServer.swift */,
+				12E2365122C996BB00180F3F /* Database */,
+				12E2364C22C831F600180F3F /* Parser */,
 				12E2364422BDEE5B00180F3F /* Groups */,
 				12D4517522BC6585007F1760 /* Forms */,
 				12D4517622BC6590007F1760 /* Submissions */,
 				12D4517722BC65A6007F1760 /* Settings */,
 				12E2364122BCE29500180F3F /* Utilities */,
-				12E2364022BCE26100180F3F /* Extensions */,
 				12B45D1121FD1B0A00F3064F /* Main.storyboard */,
 				12B45D1421FD1B0D00F3064F /* Assets.xcassets */,
 				12B45D1621FD1B0D00F3064F /* LaunchScreen.storyboard */,
@@ -294,6 +327,9 @@
 			isa = PBXGroup;
 			children = (
 				12E2363A22BCD10100180F3F /* GSBSpinner.swift */,
+				1259838622053CE700F41566 /* GSBListTableViewController.swift */,
+				12E2365422CCAD6E00180F3F /* Eureka */,
+				12E2364022BCE26100180F3F /* Extensions */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -301,8 +337,8 @@
 		12E2364422BDEE5B00180F3F /* Groups */ = {
 			isa = PBXGroup;
 			children = (
-				12E2364222BDEE5400180F3F /* GSBGroupListViewController.swift */,
-				12E2364522BE136400180F3F /* GSBGroupTableViewCell.swift */,
+				12E2364222BDEE5400180F3F /* GSBProjectListViewController.swift */,
+				12E2364522BE136400180F3F /* GSBProjectTableViewCell.swift */,
 			);
 			path = Groups;
 			sourceTree = "<group>";
@@ -321,6 +357,25 @@
 				12E2364F22C9868E00180F3F /* RealmDB.swift */,
 			);
 			path = Database;
+			sourceTree = "<group>";
+		};
+		12E2365422CCAD6E00180F3F /* Eureka */ = {
+			isa = PBXGroup;
+			children = (
+				12E2365D22CCB6D600180F3F /* ImageRow */,
+				12E2365B22CCB2E400180F3F /* FloatLabelTextField.swift */,
+				12E2365722CCB1EA00180F3F /* CustomCells.swift */,
+			);
+			path = Eureka;
+			sourceTree = "<group>";
+		};
+		12E2365D22CCB6D600180F3F /* ImageRow */ = {
+			isa = PBXGroup;
+			children = (
+				12E2365E22CCB6E000180F3F /* ImageRow.swift */,
+				12E2366022CCB6E400180F3F /* ImagePickerController.swift */,
+			);
+			path = ImageRow;
 			sourceTree = "<group>";
 		};
 		9B547D349FE5ED2B701B0597 /* Pods */ = {
@@ -458,8 +513,10 @@
 				122BF2E422AE5FB100F81546 /* icons8-cancel-filled-30@3x.png in Resources */,
 				122BF2F622B6407000F81546 /* icons8-smartphone-tablet-30@3x.png in Resources */,
 				122BF30622B834BC00F81546 /* icons8-upload-30@3x.png in Resources */,
+				12061EB122F662A9008D7BAB /* icons8-document-33@3x.png in Resources */,
 				122BF2E622AE5FF800F81546 /* icons8-check-mark-symbol-filled-30@3x.png in Resources */,
 				122BF30822B8357900F81546 /* icons8-smartphone-tablet-filled-90.png in Resources */,
+				12061EB522F663B4008D7BAB /* icons8-compass-33@3x.png in Resources */,
 				12B45D1821FD1B0D00F3064F /* LaunchScreen.storyboard in Resources */,
 				12B45D1521FD1B0D00F3064F /* Assets.xcassets in Resources */,
 				122BF2FA22B7487E00F81546 /* icons8-documents-filled-33@3x.png in Resources */,
@@ -467,11 +524,15 @@
 				122BF2E222AE5F9800F81546 /* icons8-cloud-cross-filled-30@3x.png in Resources */,
 				122BF30222B8342600F81546 /* icons8-box-important-filled-30@3x.png in Resources */,
 				125983912211489B00F41566 /* icons8-settings-33@3x.png in Resources */,
+				12061EB322F662FA008D7BAB /* icons8-barcode-33@3x.png in Resources */,
 				1259838F2211444600F41566 /* icons8-documents-33@3x.png in Resources */,
+				127919F122E5B0BB00EB8A80 /* icons8-voice-33@3x.png in Resources */,
+				127919EB22E5AB3400EB8A80 /* icons8-camera-33@3x.png in Resources */,
 				122BF2EC22B4B42400F81546 /* icons8-help-33@3x.png in Resources */,
 				122BF30422B8348D00F81546 /* icons8-download-30@3x.png in Resources */,
 				12B45D1321FD1B0A00F3064F /* Main.storyboard in Resources */,
 				122BF2F822B7484A00F81546 /* icons8-paste-filled-33@3x.png in Resources */,
+				127919EF22E5B02E00EB8A80 /* icons8-video-call-33@3x.png in Resources */,
 				122BF2E822AE600A00F81546 /* icons8-cloud-checked-filled-30@3x.png in Resources */,
 				122BF2FC22B748AA00F81546 /* icons8-settings-filled-33@3x.png in Resources */,
 				1259838D2211435500F41566 /* icons8-paste-33@3x.png in Resources */,
@@ -508,6 +569,7 @@
 				"${BUILT_PRODUCTS_DIR}/KeychainSwift/KeychainSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
 				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
+				"${BUILT_PRODUCTS_DIR}/XMLMapper/XMLMapper.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
@@ -517,6 +579,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KeychainSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/XMLMapper.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -597,20 +660,27 @@
 			buildActionMask = 2147483647;
 			files = (
 				1259838722053CE700F41566 /* GSBListTableViewController.swift in Sources */,
+				12E2366322D022CF00180F3F /* GSBRESTServer.swift in Sources */,
 				12B45D1021FD1B0A00F3064F /* SecondViewController.swift in Sources */,
 				122BF2F422B62B7E00F81546 /* GSBFormViewController.swift in Sources */,
+				12E2365822CCB1EA00180F3F /* CustomCells.swift in Sources */,
 				12E2363B22BCD10100180F3F /* GSBSpinner.swift in Sources */,
 				12B45D0C21FD1B0A00F3064F /* AppDelegate.swift in Sources */,
 				12E2363D22BCE05C00180F3F /* UIFont+.swift in Sources */,
-				12E2364322BDEE5400180F3F /* GSBGroupListViewController.swift in Sources */,
-				12E2364622BE136400180F3F /* GSBGroupTableViewCell.swift in Sources */,
+				12E2366122CCB6E400180F3F /* ImagePickerController.swift in Sources */,
+				12E2364322BDEE5400180F3F /* GSBProjectListViewController.swift in Sources */,
+				12E2364622BE136400180F3F /* GSBProjectTableViewCell.swift in Sources */,
 				12E2364B22C5A7B600180F3F /* GSBXFormParser.swift in Sources */,
 				12E2363F22BCE0AD00180F3F /* UIColor+.swift in Sources */,
 				12E2365022C9868E00180F3F /* RealmDB.swift in Sources */,
+				12E2365F22CCB6E000180F3F /* ImageRow.swift in Sources */,
 				12BB609222AB2E39005220CE /* GSBServer.swift in Sources */,
 				12D4517422BC5FB3007F1760 /* GSBFormListViewController.swift in Sources */,
 				122417B822A33220007E3D0C /* GSBSettingsViewController.swift in Sources */,
+				12E2366522D02AEB00180F3F /* GSBOpenRosaServer.swift in Sources */,
+				12E2365C22CCB2E400180F3F /* FloatLabelTextField.swift in Sources */,
 				125983892211312900F41566 /* GSBFormTableViewCell.swift in Sources */,
+				12E2365322CC99FA00180F3F /* GSBXFormController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -793,6 +863,22 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-framework",
+					"\"Eureka\"",
+					"-framework",
+					"\"KeychainSwift\"",
+					"-framework",
+					"\"Realm\"",
+					"-framework",
+					"\"RealmSwift\"",
+					"-framework",
+					"\"XMLMapper\"",
+					"-lxml2",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" -Xcc -I$(SDKROOT)/usr/include/libxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = xiphware.iXForms;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
@@ -812,6 +898,22 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-framework",
+					"\"Eureka\"",
+					"-framework",
+					"\"KeychainSwift\"",
+					"-framework",
+					"\"Realm\"",
+					"-framework",
+					"\"RealmSwift\"",
+					"-framework",
+					"\"XMLMapper\"",
+					"-lxml2",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" -Xcc -I$(SDKROOT)/usr/include/libxml2";
 				PRODUCT_BUNDLE_IDENTIFIER = xiphware.iXForms;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;

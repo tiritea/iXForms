@@ -49,17 +49,21 @@ enum ControlType: Int, CustomStringConvertible {
     case boolean = 9
     case barcode = 10
     case binary = 11 // aka upload control
-    
+
     // additional (non-input) control types
     case selectone = 12
     case select = 13
+    case range = 14
+    case trigger = 15
+    case secret = 16
+    case rank = 17
     
     var description : String {
         switch self {
         case .string: return "string"
         case .date: return "date"
         case .time: return "time"
-        case .datetime: return "datetime"
+        case .datetime: return "dateTime"
         case .integer: return "integer"
         case .decimal: return "decimal"
         case .geopoint: return "geopoint"
@@ -70,11 +74,15 @@ enum ControlType: Int, CustomStringConvertible {
         case .binary: return "binary"
         case .selectone: return "select1"
         case .select: return "select"
+        case .range: return "range"
+        case .trigger: return "trigger"
+        case .secret: return "secret"
+        case .rank: return "odk:rank"
         }
     }
 }
 
-class Group: Object {
+class Project: Object {
     @objc dynamic var id: String!
     @objc dynamic var name: String?
     @objc dynamic var created: Date?
@@ -97,6 +105,7 @@ class XForm: Object {
     @objc dynamic var created: Date?
     @objc dynamic var updated: Date?
     @objc dynamic var lastSubmission: Date?
+    @objc dynamic var url: String?
     let numRecords = RealmOptional<Int>() // may be nil
     let state = RealmOptional<Int>() // FormState
     var instances = List<String>()
@@ -151,21 +160,49 @@ class XFormControl: Object {
     @objc dynamic var label: String?
     @objc dynamic var hint: String?
     @objc dynamic var appearance: String?
+    @objc dynamic var binding: XFormBinding? // must be optional; see https://stackoverflow.com/questions/50874280
     let type = RealmOptional<Int>() // ControlType
-    var items = List<XFormControl>()
     
-    // TODO precompute binding?
+    // control-specific properties
+    var items = List<XFormItem>() // select/select1 only
+    let min = RealmOptional<Float>() // range only
+    let max = RealmOptional<Float>() // range only
+    let inc = RealmOptional<Float>() // range only
+    @objc dynamic var mediatype: String? // upload only
     
-    convenience init(attributes: [String : String], type: ControlType) {
+    convenience init(attributes: [String : String], type: ControlType, binding: XFormBinding!) {
         self.init()
         label = attributes["label"]
         hint = attributes["hint"]
         appearance = attributes["appearance"]
         self.type.value = type.rawValue
+        self.binding = binding
     }
+
 }
 
 class XFormItem: Object {
     @objc dynamic var label: String! // always required?
     @objc dynamic var value: String! // always required?
+    
+    convenience init(label: String, value: String) {
+        self.init()
+        self.label = label
+        self.value = value
+    }
+}
+
+class XFormSubmission: Object {
+    @objc dynamic var id: String!
+    @objc dynamic var xml: String!
+    @objc dynamic var xform: XForm! // vs formid?
+    
+    override static func primaryKey() -> String? {return "id"}
+
+    convenience init(xform: XForm!) {
+        self.init()
+        self.id = UUID().uuidString
+        self.xform = xform
+        self.xml = xform.instances.first!
+    }
 }
