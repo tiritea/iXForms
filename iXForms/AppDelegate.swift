@@ -16,30 +16,29 @@ let APP = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? ""
 let DATETIMEFORMAT = "yyyy-MM-dd'T'HH:mm:ss.SZ"
 let DATEFORMAT = "yyyy-MM-dd"
 let TIMEFORMAT = "HH:mm:ss.SZ"
-let DEFAULTAPI: ServerAPI = .openrosa_aggregate
+let DEFAULTAPI: ServerAPI = .rest_central
 
 @UIApplicationMain
+
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    
     var window: UIWindow?
     var formsController: GSBFormListViewController!
-    var projectsController: GSBProjectListViewController!
     var submissionsController: GSBListTableViewController!
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        os_log("%s.%s APP=%s", #file, #function, APP)
+        os_log("%s.%s", #file, #function)
 
         // Check for previously saved server
         let api: ServerAPI = ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api")) ?? DEFAULTAPI // note: UserDefaults will return 0 if key doesnt exist
         UserDefaults.standard.set(api.rawValue, forKey: "api")
         
         let url: URL?
-        if let previous = UserDefaults.standard.string(forKey: "server") {
-            url = URL(string: previous)
+        if let str = UserDefaults.standard.string(forKey: "server") {
+            url = URL(string: str)
         } else {
             url = api.server // use default server
+            UserDefaults.standard.set(url?.absoluteString, forKey: "server")
         }
-        UserDefaults.standard.set(url?.absoluteString, forKey: "server")
 
         switch api {
         case .openrosa_aggregate: server = GSBOpenRosaServer(url: url)
@@ -57,45 +56,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         ValueTransformer.setValueTransformer(GSBGeopointTransformer(), forName: NSValueTransformerName("GSBGeopointTransformer"))
 
+        NotificationCenter.default.addObserver(self, selector: #selector(serverDidChange(notification:)), name: Notification.Name("GSB_SERVERDIDCHANGE"), object: nil)
+        
+        let projectsButton = UIBarButtonItem(image: UIImage(named: "icons8-menu-30"), style: .plain, target: self, action: #selector(changeProject))
+        
         formsController = GSBFormListViewController()
-        formsController.title = "Forms"
-        formsController.dataSource = server
+        formsController.navigationItem.leftBarButtonItem = projectsButton
         formsController.tableView.register(GSBFormTableViewCell.self, forCellReuseIdentifier: formsController.reuseIdentifier)
         let formsTab = UINavigationController(rootViewController:formsController)
-        formsTab.tabBarItem = UITabBarItem(title: formsController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
+        formsTab.tabBarItem = UITabBarItem(title: "Forms", image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
         formsTab.tabBarItem.tag = 0
-
-        projectsController = GSBProjectListViewController()
-        projectsController.title = "Groups"
-        projectsController.dataSource = server
-        projectsController.tableView.register(GSBProjectTableViewCell.self, forCellReuseIdentifier: projectsController.reuseIdentifier)
-        let projectsTab = UINavigationController(rootViewController:projectsController)
-        projectsTab.tabBarItem = UITabBarItem(title: projectsController.title, image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
-        projectsTab.tabBarItem.tag = 4
-
+        
         submissionsController = GSBListTableViewController()
-        submissionsController.title = "Submissions"
-        submissionsController.dataSource = server
+        submissionsController.navigationItem.leftBarButtonItem = projectsButton
         submissionsController.tableView.backgroundColor = UIColor.red
         let submissionsTab = UINavigationController(rootViewController:submissionsController)
-        submissionsTab.tabBarItem = UITabBarItem(title: submissionsController.title, image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
+        submissionsTab.tabBarItem = UITabBarItem(title: "Submissions", image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
         submissionsTab.tabBarItem.tag = 1
         
         let settingsController = GSBSettingsViewController()
-        settingsController.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "icons8-settings-33"), selectedImage: UIImage(named: "icons8-settings-filled-33"))
-        settingsController.tabBarItem.tag = 2
         settingsController.title = "Settings"
+        settingsController.tabBarItem = UITabBarItem(title: settingsController.title, image: UIImage(named: "icons8-settings-33"), selectedImage: UIImage(named: "icons8-settings-filled-33"))
+        settingsController.tabBarItem.tag = 2
         
         let helpController = UIViewController()
-        helpController.view.backgroundColor = UIColor.blue
-        helpController.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "icons8-help-33"), selectedImage: UIImage(named: "icons8-help-filled-33"))
-        helpController.tabBarItem.tag = 3
         helpController.title = "Help"
+        helpController.view.backgroundColor = UIColor.blue
+        helpController.tabBarItem = UITabBarItem(title: helpController.title, image: UIImage(named: "icons8-help-33"), selectedImage: UIImage(named: "icons8-help-filled-33"))
+        helpController.tabBarItem.tag = 3
 
         let mainTabController = UITabBarController();
-        mainTabController.viewControllers = [formsTab, projectsTab, submissionsTab, settingsController, helpController]
+        mainTabController.viewControllers = [formsTab, submissionsTab, settingsController, helpController]
         mainTabController.selectedViewController = settingsController;
-        
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = mainTabController
         window?.makeKeyAndVisible()
@@ -124,6 +116,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
+    
+    @objc func changeProject() {
+        os_log("%s.%s", #file, #function)
+    }
 
+    @objc func serverDidChange(notification: Notification) {
+        os_log("%s.%s", #file, #function)
+        if let server = notification.object as? GSBServer {
+            os_log("server=%s", server.url.absoluteString)
+            formsController.dataSource = server
+            
+            submissionsController.dataSource = server
+        }
+    }
 }
 

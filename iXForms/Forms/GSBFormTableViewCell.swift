@@ -17,10 +17,8 @@ class GSBFormTableViewCell: UITableViewCell, GSBListTableViewCell {
         
         if (form.name != nil && form.name!.count > 0) {
             textLabel?.text = form.name
-            textLabel?.font = textLabel?.font.regular()
         } else {
-            textLabel?.text = "untitled"
-            textLabel?.font = textLabel?.font.italic()
+            textLabel?.text = "(untitled)"
         }
         
         if (form.version != nil && form.version!.count > 0) {
@@ -55,7 +53,7 @@ class GSBFormTableViewCell: UITableViewCell, GSBListTableViewCell {
             }
             tint = FormState.closed.color()
         default:
-            assertionFailure("unrecognized state")
+            assertionFailure("unrecognized form state")
         }
         imageView?.image = icon?.withRenderingMode(.alwaysTemplate)
         imageView?.tintColor = tint!

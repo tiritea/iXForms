@@ -29,18 +29,17 @@ class GSBListTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-     
-        if (dataSource != nil) {
-            refreshControl = UIRefreshControl()
-            refreshControl?.attributedTitle = NSAttributedString(string: "Refresh")
-            refreshControl!.addTarget(self, action: #selector(refresh), for: .valueChanged)
-        }
-        
         db = try! Realm()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        if (dataSource != nil) {
+            refreshControl = UIRefreshControl()
+            refreshControl?.attributedTitle = NSAttributedString(string: "Refresh")
+            refreshControl!.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        }
         reload()
     }
 

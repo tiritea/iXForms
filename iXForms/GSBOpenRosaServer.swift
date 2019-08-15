@@ -35,35 +35,26 @@ class GSBOpenRosaServer: GSBServer {
     required init(url: URL!) {
         os_log("%s.%s url=%s", #file, #function, url.absoluteString)
         self.url = url
-        UserDefaults.standard.set(url.absoluteString, forKey: "server")
     }
     
     func login(username: String!, password: String!, completion: @escaping (Error?) -> Void) {
-        login(username: username, password: password)
-        completion(nil) // 'login' always succeeds
-    }
-    
-    func login(username: String!, password: String!) {
         os_log("%s.%s username=%s", #file, #function, username)
         
         // Basic authentication
         let str = username + ":" + password
         basic = str.data(using: .utf8)?.base64EncodedString()
-
+        
         // save username and password on successful login
         let keychain = KeychainSwift()
         keychain.set(username, forKey: "username")
         keychain.set(password, forKey: "password")
-
-        let db = try! Realm()
-        try! db.write {
-            os_log("clearing database")
-            db.deleteAll()
-        }
+        
+        completion(nil) // 'login' always succeeds
     }
     
-    func getProjectList(completion: @escaping (Error?) -> Void) {
+    func getProjectList(completion: @escaping (Error?) -> Void) -> Bool {
         os_log("%s.%s", #file, #function)
+        return false
     }
     
     func getFormList(projectID: String!, completion: @escaping (Error?) -> Void) {

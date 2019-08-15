@@ -12,93 +12,82 @@ import os.log
 import RealmSwift
 import KeychainSwift
 
-class GSBRESTServer: GSBServer {
+class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
     var url: URL!
     var token: String?
     private let dateFormatter = DateFormatter()
     
-    // MARK: <GSBListTableViewDataSource>
-    
-    func refresh(controller: GSBListTableViewController, completion: @escaping (Error?) -> Void) {
-        os_log("%s.%s", #file, #function)
-        
-        // Check controller type to determine what to refresh
-        if controller is GSBProjectListViewController {
-            getProjectList(completion: completion)
-        } else if let ctrl = controller as? GSBFormListViewController {
-            getFormList(projectID: ctrl.projectID, completion: completion)
-        } else {
-            assertionFailure("unrecognized controller")
-        }
-    }
-
     // MARK: <GSBServer>
 
     required init(url: URL!) {
         os_log("%s.%s url=%s", #file, #function, url.absoluteString)
         self.url = url
-        UserDefaults.standard.set(url.absoluteString, forKey: "server")
-        
+        token = UserDefaults.standard.string(forKey: "token")
+
         dateFormatter.dateFormat = DATETIMEFORMAT
         dateFormatter.locale = Locale.current
     }
     
     func login(username: String!, password: String!, completion: @escaping (Error?) -> Void) {
-        login(username: username, password: password)
-        completion(nil) // 'login' always succeeds
-    }
-
-    func login(username: String!, password: String!) {
         os_log("%s.%s username=%s", #file, #function, username)
-        
+
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
             components.path.append("/sessions")
-            
             var request = URLRequest(url: components.url!)
+            os_log("url=%s", request.url!.absoluteString)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
             let json = ["email":username, "password":password]
             do {
                 let jsonData = try JSONSerialization.data(withJSONObject: json, options: [])
-                let session = URLSession.shared.uploadTask(with: request, from: jsonData) { data, response, error in
+                
+                // let session = URLSession.shared.uploadTask(with: request, from: jsonData) { data, response, error in
+                // ...
+                // session.resume()
+
+                // .default configuration will cause subsequent logins to fail with 401
+                // see https://developer.apple.com/documentation/foundation/urlsessionconfiguration/1410529-ephemeral
+                let session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: nil)
+                let postTask = session.uploadTask(with: request, from: jsonData) { data, response, error in
                     do {
-                        if (error != nil || (response as! HTTPURLResponse).statusCode != 200) {
+                        let status = (response as! HTTPURLResponse).statusCode
+                        if (error != nil || status != 200) {
                             let error = NSError(domain: APP, code: 0, userInfo: [NSLocalizedDescriptionKey: "login failed"])
-                            os_log("%s",error.localizedDescription)
+                            os_log("%d %s", status, error.localizedDescription)
                             throw error
                         }
                         
                         let result = try JSONSerialization.jsonObject(with: data!, options: []) as! Dictionary<String,String>
-                        self.token = result["token"]
-                        os_log("token=%s", self.token ?? "")
+                        self.token = result["token"]! // always get token back on successful login!
+                        os_log("token=%s", self.token!)
                         
                         // save username and password on successful login
                         let keychain = KeychainSwift()
                         keychain.set(username, forKey: "username")
                         keychain.set(password, forKey: "password")
+                        keychain.set(self.token!, forKey: "token")
                         
-                        let db = try! Realm()
-                        try! db.write {
-                            os_log("clearing database")
-                            db.deleteAll()
-                        }
+                        completion(nil) // no error
                     } catch {
+                        completion(error)
                     }
                 }
-                session.resume()
+                postTask.resume()
             } catch {
                 assertionFailure("malformed request")
             }
         }
     }
     
-    func getProjectList(completion: @escaping (Error?) -> Void) {
+    func getProjectList(completion: @escaping (Error?) -> Void) -> Bool {
         os_log("%s.%s", #file, #function)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
-            components.path.append("/projects") // REST endpoint
+            components.path.append("/projects")
             
             var request = URLRequest(url: components.url!)
+            os_log("url=%s", request.url!.absoluteString)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("true", forHTTPHeaderField: "X-Extended-Metadata") // include number of forms
@@ -107,10 +96,14 @@ class GSBRESTServer: GSBServer {
                 request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
             }
 
-            let session = URLSession.shared.dataTask(with: request) { data, response, error in
+            let session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: nil)
+            let getTask = session.dataTask(with: request) { data, response, error in
                 do {
-                    if (error != nil || (response as! HTTPURLResponse).statusCode != 200) {
-                        throw NSError(domain: "", code: 0, userInfo: [:])
+                    let status = (response as! HTTPURLResponse).statusCode
+                    if (error != nil || status != 200) {
+                        let error = NSError(domain: APP, code: 0, userInfo: [NSLocalizedDescriptionKey: "getProjectList failed"])
+                        os_log("%d %s", status, error.localizedDescription)
+                        throw error
                     }
                     
                     let results = try JSONSerialization.jsonObject(with: data!, options: [.mutableContainers]) as! Array<Dictionary<String,Any>> // must be Any to handle possible null values!
@@ -129,39 +122,44 @@ class GSBRESTServer: GSBServer {
                             db.create(Project.self, value: project!, update: .all) // replace existing group
                         }
                     }
-                    completion(nil) // Success!
+                    completion(nil) // no error
                 } catch {
-                    let error = NSError(domain: APP, code: 0, userInfo: [NSLocalizedDescriptionKey: "getProjectList failed"])
-                    os_log("%s",error.localizedDescription)
                     completion(error)
                 }
             }
-            session.resume()
+            getTask.resume()
         } else {
-            os_log("Bad URL")
-            completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "bad URL"]))
+            assertionFailure("malformed request")
         }
+        return true // projects supported
     }
     
     func getFormList(projectID: String!, completion: @escaping (Error?) -> Void) {
         os_log("%s.%s projectID=%s", #file, #function, projectID)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
-            components.path.append("/projects/" + projectID + "/forms") // REST endpoint; "groups" -> projects
+            components.path.append("/projects/" + projectID + "/forms")
             
             var request = URLRequest(url: components.url!)
+            os_log("url=%s", request.url!.absoluteString)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("true", forHTTPHeaderField: "X-Extended-Metadata") // include submissions, createdBy, ...
 
             if let token = self.token {
                 request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+            } else {
+                assertionFailure("no token")
             }
             
-            let session = URLSession.shared.dataTask(with: request) { data, response, error in
+            let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+            let getTask = session.dataTask(with: request) { data, response, error in
                 do {
-                    if (error != nil || (response as! HTTPURLResponse).statusCode != 200) {
-                        throw NSError(domain: "iXForms", code: 0, userInfo: [:])
+                    let status = (response as! HTTPURLResponse).statusCode
+                    if (error != nil || status != 200) {
+                        let error = NSError(domain: APP, code: 0, userInfo: [NSLocalizedDescriptionKey: "getFormList failed"])
+                        os_log("%d %s", status, error.localizedDescription)
+                        throw error
                     }
                     
                     let results = try JSONSerialization.jsonObject(with: data!, options: [.mutableContainers]) as! Array<Dictionary<String,Any>> // must be Any to handle possible null values!
@@ -184,16 +182,14 @@ class GSBRESTServer: GSBServer {
                             db.create(XForm.self, value: xform!, update: .all) // replace existing form
                         }
                     }
-                    completion(nil) // Success!
+                    completion(nil) // no error
                 } catch {
-                    os_log("ERROR getFormList failed")
-                    completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "getFormList failed"]))
+                    completion(error)
                 }
             }
-            session.resume()
+            getTask.resume()
         } else {
-            os_log("Bad URL")
-            completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "bad URL"]))
+            assertionFailure("malformed request")
         }
     }
 
@@ -233,8 +229,7 @@ class GSBRESTServer: GSBServer {
             }
             session.resume()
         } else {
-            os_log("Bad URL")
-            completion(NSError(domain: "iXForms", code: 0, userInfo: [NSLocalizedDescriptionKey: "bad URL"]))
+            assertionFailure("malformed request")
         }
     }
 
@@ -307,5 +302,27 @@ class GSBRESTServer: GSBServer {
         if let submissions = dict["submissions"] as? NSNumber {
             form.numRecords.value = submissions.intValue
         }
+    }
+    
+    // MARK: <GSBListTableViewDataSource>
+    
+    func refresh(controller: GSBListTableViewController, completion: @escaping (Error?) -> Void) {
+        os_log("%s.%s", #file, #function)
+        
+        // Check controller type to determine what to refresh
+        if controller is GSBProjectListViewController {
+            getProjectList(completion: completion)
+        } else if let ctrl = controller as? GSBFormListViewController {
+            getFormList(projectID: ctrl.projectID, completion: completion)
+        } else {
+            assertionFailure("unrecognized controller")
+        }
+    }
+    
+    // MARK: <URLSessionDelegate>
+
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        os_log("%s.%s count=%d", #file, #function, challenge.previousFailureCount)
+        completionHandler(Foundation.URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust:challenge.protectionSpace.serverTrust!))
     }
 }

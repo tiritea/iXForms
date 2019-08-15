@@ -7,16 +7,7 @@
 //
 
 import Foundation
-
-/*
-enum ServerAPI: String, CaseIterable {
-    case openrosa_aggregate = "OpenRosa (ODK Aggregate)"
-    case openrosa_central = "OpenRosa (ODK Central)"
-    case openrosa_kobo = "OpenRosa (KoboToolbox)"
-    case rest_central = "REST (ODK Central)"
-    case rest_gomobile = "REST (GoMobile)"
-}
-*/
+import os.log
 
 enum ServerAPI: Int, CaseIterable, CustomStringConvertible {
     case openrosa_aggregate = 1
@@ -51,13 +42,22 @@ protocol GSBServer : GSBListTableViewDataSource {
     var url: URL! {get set}
 
     init(url: URL!)
-    func login(username: String!, password: String!)
     func login(username: String!, password: String!, completion: @escaping (Error?) -> Void)
-    func getProjectList(completion: @escaping (Error?) -> Void)
+    func getProjectList(completion: @escaping (Error?) -> Void) -> Bool // returns false if projects/groups/categories are unsupported
     func getFormList(projectID: String!, completion: @escaping (Error?) -> Void)
     func getForm(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
     func getSubmissionList(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
     func getSubmission(submissionID: String!, formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
 }
 
-var server: GSBServer! // singleton
+private var _server: GSBServer?
+var server: GSBServer? {
+    get {
+        return _server
+    }
+    set {
+        os_log("%s.%s set server=%s", #file, #function, newValue?.url.absoluteString ?? "(null)")
+        _server = newValue
+        NotificationCenter.default.post(name: Notification.Name("GSB_SERVERDIDCHANGE"), object: _server)
+    }
+}
