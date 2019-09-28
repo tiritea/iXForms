@@ -25,6 +25,11 @@ extension UIColor {
         )
     }
     
+    func complement() -> UIColor {
+        let ciColor = CIColor(color: self)
+        return UIColor(red: (1.0 - ciColor.red), green: (1.0 - ciColor.green), blue: (1.0 - ciColor.blue), alpha: 1.0)
+    }
+    
     // https://stackoverflow.com/questions/19032940
     static var systemBlue: UIColor {
         return UIButton(type: .system).tintColor
@@ -34,5 +39,12 @@ extension UIColor {
         return UITableViewCell.init(style: .value1, reuseIdentifier: nil).detailTextLabel!.textColor
     }
 
+    static var control: UIColor {
+        return UIColor(hex: 0x6a5acd)
+    }
+
+    static var tomato: UIColor {
+        return UIColor(hex: 0xff6347)
+    }    
 }
 

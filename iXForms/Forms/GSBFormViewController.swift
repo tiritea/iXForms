@@ -20,19 +20,15 @@ class GSBFormViewController: FormViewController {
         self.init()
         self.xform = xform
         hidesBottomBarWhenPushed = true
-
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         let sendButton = UIBarButtonItem(image: UIImage(named: "icons8-upload-30"), style: .plain, target: self, action: #selector(send))
-        let shareButton = UIBarButtonItem(image: UIImage(named: "icons8-smartphone-tablet-30"), style: .plain, target: self, action: #selector(share))
+        let shareButton = UIBarButtonItem(image: UIImage(named: "icons8-smartphone-tablet-from-30"), style: .plain, target: self, action: #selector(share))
         navigationItem.rightBarButtonItems = [sendButton,shareButton]
         
-        
-        //navigationItem.leftBarButtonItem = UIBarButtonItem(image: xform.icon(), style: .plain, target: nil, action: nil)
-
         title = xform.id
         
         // -----
@@ -41,7 +37,7 @@ class GSBFormViewController: FormViewController {
         form.append(section)
 
         section.append(TextRow("name") {
-            $0.title = "Title"
+            $0.title = "Name"
             $0.value = xform.name
             }
             .cellSetup { cell, row in
@@ -153,7 +149,7 @@ class GSBFormViewController: FormViewController {
         )
 
         section.append(ButtonRow("showsubmissions") {
-            $0.title = "Show All Submissions"
+            $0.title = "View Submissions"
             $0.hidden = Condition.predicate(NSPredicate(format: "$submissions == 0"))
             }
             .cellSetup { cell, row in
@@ -170,7 +166,7 @@ class GSBFormViewController: FormViewController {
         form.append(section)
 
         section.append(ButtonRow("start") {
-            $0.title = "Start New Form"
+            $0.title = "New Submission"
             $0.disabled = Condition(booleanLiteral: xform.xml == nil) // form hasnt been downloaded yet
             }
             .cellSetup { cell, row in
@@ -218,15 +214,15 @@ class GSBFormViewController: FormViewController {
                 return
             }
         }
-        os_log("form has %d instances, %d bindings, %d controls", xform.instances.count, xform.bindings.count, xform.controls.count)
+        os_log("form has %d instances, %d bindings, %d controls, %d groups", xform.instances.count, xform.bindings.count, xform.controls.count, xform.groups.count)
 
         let db = try! Realm()
         try! db.write {
             let submission = XFormSubmission.init(xform: xform)
             db.create(XFormSubmission.self, value: submission, update: .all)
-            os_log("new submission id = %s",submission.id)
+            os_log("new submission id=%s",submission.id)
             
-            let xformController = GSBXFormController(submission)
+            let xformController = GSBXFormController(submission, group: nil) // root group
             navigationController?.pushViewController(xformController, animated: true)
         }
     }

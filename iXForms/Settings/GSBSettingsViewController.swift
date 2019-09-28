@@ -14,7 +14,8 @@ import RealmSwift
 
 class GSBSettingsViewController: FormViewController {
     
-    let controlColor = UIColor(hex: 0x4682B4) // HTML SteelBlue
+    var api: ServerAPI!
+    var urlComponents: URLComponents!
     
     // MARK: Eureka Form
 
@@ -23,65 +24,25 @@ class GSBSettingsViewController: FormViewController {
         
         let device = UIDevice.current
         var section: Section
+        var tag: String
         
-        TextRow.defaultCellSetup = { (cell, row) in
-            cell.textField.keyboardType = .asciiCapable
-            cell.textField.autocapitalizationType = .none
-            cell.textField.autocorrectionType = .no
-        }
-        TextRow.defaultCellUpdate = { (cell, row) in
-            cell.textField.textColor = .systemDetailTextLabel
-        }
-
-        IntRow.defaultCellSetup = { (cell, row) in
-            // remove IntRow separator (eg "1,234" -> "1234")
-            row.useFormatterDuringInput = true
-            let formatter = NumberFormatter()
-            formatter.groupingSeparator = ""
-            row.formatter = formatter
-        }
-        IntRow.defaultCellUpdate = { (cell, row) in
-            cell.textField.textColor = .systemDetailTextLabel
-        }
-
-        SegmentedRow<String>.defaultCellSetup = { (cell, row) in
-            // minimize segment width - https://github.com/xmartlabs/Eureka/issues/973
-            cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-            cell.segmentedControl.apportionsSegmentWidthsByContent = true
-            cell.tintColor = self.controlColor
-        }
-
-        SwitchRow.defaultCellSetup = { (cell, row) in
-            cell.switchControl.tintColor = self.controlColor
-            cell.switchControl.onTintColor = self.controlColor
-        }
-
-        ButtonRow.defaultCellSetup = { (cell, row) in
-            cell.tintColor = UIColor.white
-            cell.textLabel?.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline) // bold
-            cell.backgroundColor = UIColor.red
-        }
-
-        // ---------- Server section ----------
+        // ---------- Server ----------
         
         section = Section("Server")
+        section.tag = "server"
         form.append(section)
         
-        // Note: ServerAPI enum starts a 1!
+        // Note: ServerAPI enum starts at 1!
         section.append(ActionSheetRow<String>("api") {
             $0.title = "API"
             $0.options = ServerAPI.allCases.map{ $0.description }
-            if let api = ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api")) {
-                $0.value = $0.options![api.rawValue - 1]
-            }}
+            }
             .onChange { row in
                 if let selected = row.value, let index = row.options!.index(of: selected) {
-                    let api = ServerAPI(rawValue: index+1)!
-                    UserDefaults.standard.set(api.rawValue, forKey: "api")
+                    self.api = ServerAPI(rawValue: index+1)!
 
-                    // also initialize url to the default server for this API
-                    let url = api.server
-                    UserDefaults.standard.set(url?.absoluteString, forKey: "server")
+                    // initialize url to the default server for new API
+                    self.urlComponents = URLComponents(url: self.api.server!, resolvingAgainstBaseURL: true)
                     self.refresh()
                 }
             }
@@ -92,7 +53,14 @@ class GSBSettingsViewController: FormViewController {
             $0.placeholder = "hostname/path"
             $0.onCellHighlightChanged { (cell, row) in // finished editting
                 if !row.isHighlighted {
-                    self.save()
+                    // https://stackoverflow.com/questions/25678373
+                    self.urlComponents.host = nil
+                    self.urlComponents.path = ""
+                    if let value = row.value {
+                        let path = value.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true).map(String.init)
+                        if (path.count > 0) {self.urlComponents.host = path[0]}
+                        if (path.count > 1) {self.urlComponents.path = "/" + path[1]} // CRITICAL path must start with "/..."
+                    }
                 }
             }}
         )
@@ -105,12 +73,9 @@ class GSBSettingsViewController: FormViewController {
                 row.title = (row.value == "https") ? "Protocol (secure)" :  "Protocol (insecure)"
                 row.reload()
                 
-                // also initialize default port: 80 (http) or 443 (https)
-                let port = self.form.rowBy(tag: "port") as! IntRow
-                port.value = (row.value == "https") ? 443 : 80
-                port.reload()
-                
-                self.save()
+                self.urlComponents.scheme = row.value
+                self.urlComponents.port = (row.value == "https") ? 443 : 80 // initialize default port: 80 (http) or 443 (https)
+                self.refresh()
             }
         )
 
@@ -118,7 +83,7 @@ class GSBSettingsViewController: FormViewController {
             $0.title = "Port"
             $0.onCellHighlightChanged { (cell, row) in // finished editting
                 if !row.isHighlighted {
-                    self.save()
+                    self.urlComponents.port = row.value
                 }
             }}
         )
@@ -133,7 +98,7 @@ class GSBSettingsViewController: FormViewController {
             }
         )
         
-        // ---------- App section ----------
+        // ---------- App settings ----------
         
         //section = Section(header: "App", footer: "created by Xiphware")
         section = Section("App")
@@ -169,92 +134,108 @@ class GSBSettingsViewController: FormViewController {
             $0.value = device.systemName + " " + device.systemVersion
         })
         
-        section.append(ImageRow("icons8") {
-            $0.title = "Icons by icons8"
-            $0.value = UIImage.init(named: "icons8-icons8-33")?.withRenderingMode(.alwaysTemplate)
+        section.append(ImageRow("github") {
+            $0.title = "Source code"
+            $0.value = UIImage.init(named: "icons8-github-33")?.withRenderingMode(.alwaysTemplate)
             $0.disabled = true // will disable image functions, but can still select cell to open URL
             }
             .cellSetup { cell, row in
-                cell.tintColor = self.controlColor
-                cell.accessoryView = UIImageView(image: UIImage.init(named: "icons8-33")?.withRenderingMode(.alwaysTemplate))
+                cell.tintColor = .control
+            }
+            .onCellSelection { cell, row in
+                UIApplication.shared.open(URL(string: "https://github.com/tiritea")!, options: [:], completionHandler: nil)
+            }
+        )
+
+        section.append(ImageRow("icons8") {
+            $0.title = "Icons by Icons8™"
+            $0.value = UIImage.init(named: "icons8-icons8-filled-33")?.withRenderingMode(.alwaysTemplate)
+            $0.disabled = true // will disable image functions, but can still select cell to open URL
+            }
+            .cellSetup { cell, row in
+                cell.tintColor = .control
             }
             .onCellSelection { cell, row in
                 UIApplication.shared.open(URL(string: "https://icons8.com")!, options: [:], completionHandler: nil)
             }
         )
 
-        // ---------- Settings section ----------
+        // ---------- Other settings ----------
         
         section = Section("Settings")
         form.append(section)
 
-        section.append(SwitchRow("guidance") {
+        tag = "guidance"
+        section.append(SwitchRow(tag) {
             $0.title = "Show guidance hints"
-            $0.value = UserDefaults.standard.bool(forKey: "showguidance")
+            $0.value = UserDefaults.standard.bool(forKey: tag)
             }
             .onChange { row in
-                UserDefaults.standard.set(row.value, forKey: "showguidance")
+                UserDefaults.standard.set(row.value, forKey: tag)
             }
         )
-
         
-        refresh() // load URL to populate server settings
+        tag = "auditlog"
+        section.append(SwitchRow(tag) {
+            $0.title = "Audit form changes"
+            $0.value = UserDefaults.standard.bool(forKey: tag)
+            }
+            .onChange { row in
+                UserDefaults.standard.set(row.value, forKey: tag)
+            }
+        )
     }
     
-    // MARK: UserDefaults
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // (re)populate server API and URL from defaults
+        api = ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api")) // or 0 if not set
 
-    // Load server settings from UserDefaults
-    func refresh() {
-        var disableLogin = false
-        if let urlString = UserDefaults.standard.string(forKey: "server"), let components = URLComponents(string: urlString) {
-            os_log("%s.%s server=%s", #file, #function, urlString)
-
-            (form.rowBy(tag: "port") as! IntRow).value = components.port
-            (form.rowBy(tag: "protocol") as! SegmentedRow<String>).value = components.scheme // ??? not sure why this doesnt trigger onChange save/refresh infinite loop...
-            
-            let hostRow = form.rowBy(tag: "host") as! TextRow
-            hostRow.value = components.host
-            hostRow.value!.append(components.path)
+        if let urlString = UserDefaults.standard.string(forKey: "server") {
+            urlComponents = URLComponents(string: urlString)
         } else {
-            disableLogin = true
-        }
-        form.sectionBy(tag: "Server")?.reload()
-        
-        // Enable login only if have valid URL and API
-        let loginRow = form.rowBy(tag: "login") as! ButtonRow
-        loginRow.disabled = Condition(booleanLiteral: disableLogin || ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api")) == nil) // https://github.com/xmartlabs/Eureka/issues/1393
-        loginRow.evaluateDisabled() // https://github.com/xmartlabs/Eureka/issues/559
-    }
-
-    // Save server settings to UserDefaults
-    func save() {
-        var components = URLComponents()
-        components.port = (form.rowBy(tag: "port") as! IntRow).value
-        components.scheme = (form.rowBy(tag: "protocol") as! SegmentedRow).value
-        
-        if let host = (form.rowBy(tag: "host") as! TextRow).value {
-            // https://stackoverflow.com/questions/25678373
-            let paths = host.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true).map(String.init)
-            if (paths.count > 0) {components.host = paths[0]}
-            if (paths.count > 1) {components.path = "/" + paths[1]} // CRITICAL path must start with "/..."
-            if let url = components.url {
-                let urlString = url.absoluteString
-                UserDefaults.standard.set(urlString, forKey: "server")
-                os_log("%s.%s server=%s", #file, #function, urlString)
-            }
+            urlComponents = URLComponents() // initialize empty URL to be populated from rows
         }
         refresh()
+    }
+    
+    // Update server section with current API & URL
+    func refresh() {
+        let loginRow = form.rowBy(tag: "login") as! ButtonRow
+        loginRow.disabled = false
+
+        let row = (form.rowBy(tag: "api") as! ActionSheetRow<String>)
+        if api.rawValue != 0 {
+            row.value = row.options![api.rawValue - 1]
+        } else {
+            row.value = nil
+            loginRow.disabled = true // disable login if API not set
+        }
+
+        if let urlComponents = urlComponents {
+            (form.rowBy(tag: "port") as! IntRow).value = urlComponents.port
+            (form.rowBy(tag: "protocol") as! SegmentedRow<String>).value = urlComponents.scheme
+            (form.rowBy(tag: "host") as! TextRow).value = urlComponents.host! + urlComponents.path
+        } else {
+            (form.rowBy(tag: "port") as! IntRow).value = nil
+            (form.rowBy(tag: "protocol") as! SegmentedRow<String>).value = nil
+            (form.rowBy(tag: "host") as! TextRow).value = nil
+        }
+        
+        if urlComponents.url == nil {
+            loginRow.disabled = true // disable login if invalid URL
+        }
+        
+        form.sectionBy(tag: "server")!.reload()
+        loginRow.evaluateDisabled() // https://github.com/xmartlabs/Eureka/issues/559
     }
   
     // MARK: Actions
 
     func login() {
-        // Should never get here unless have URL and API
-        let url = URL(string: UserDefaults.standard.string(forKey: "server")!)!
-        let api = ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api"))!
-        
-        let loginController = UIAlertController(title: url.host,
-                                                message: "\u{26A0} Changing the server will clear all previous forms and submissions.",
+        let loginController = UIAlertController(title: urlComponents.host,
+                                                message: "\u{26A0} Changing servers will clear all saved forms and submissions.",
                                                 preferredStyle: .alert)
         let keychain = KeychainSwift()
 
@@ -278,27 +259,25 @@ class GSBSettingsViewController: FormViewController {
         loginController.addAction(UIAlertAction(title: "Login", style: .destructive, handler: { action in
             let username = (loginController.textFields![0] as UITextField).text
             let password = (loginController.textFields![1] as UITextField).text
+            let url = self.urlComponents.url
             
             let newserver: GSBServer
-            switch api {
+            switch self.api! { // must have valid API otherwise login disabled
             case .openrosa_aggregate: newserver = GSBOpenRosaServer(url: url)
             case .openrosa_central: newserver = GSBOpenRosaServer(url: url)
-            case .openrosa_kobo: newserver = GSBKoboServer(url: url) // will append username to URL after login
+            case .openrosa_kobo: newserver = GSBKoboServer(url: url) // Kobo will append username to URL after login
             case .rest_central : newserver = GSBRESTServer(url: url)
             case .rest_gomobile: newserver = GSBRESTServer(url: url)
             }
             
             newserver.login(username: username, password: password, completion: { error in
                 if (error == nil) {
-                    // clear database if changing server
-                    if (newserver.url.absoluteString != server?.url.absoluteString) {
-                        let db = try! Realm()
-                        try! db.write {
-                            os_log("clearing database")
-                            db.deleteAll()
-                        }
-                    }
-                    server = newserver
+                    os_log("login successful")
+                    UserDefaults.standard.set(self.api.rawValue, forKey: "api")
+                    UserDefaults.standard.set(url!.absoluteString, forKey: "server") // URL must be valid because login succeeded
+                    server = newserver // switch to new server!
+                } else {
+                    UIAlertController.showAlert(title: "Login Failed", message: error?.localizedDescription, button: "Cancel")
                 }
             })
         }))

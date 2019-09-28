@@ -15,7 +15,9 @@ import XMLMapper
 
 class GSBOpenRosaServer: GSBServer {
     var url: URL!
-    var basic: String?
+    var hasProjects: Bool! = false
+
+    private var basic: String?
 
     // MARK: <GSBListTableViewDataSource>
     
@@ -52,10 +54,7 @@ class GSBOpenRosaServer: GSBServer {
         completion(nil) // 'login' always succeeds
     }
     
-    func getProjectList(completion: @escaping (Error?) -> Void) -> Bool {
-        os_log("%s.%s", #file, #function)
-        return false
-    }
+    func getProjectList(completion: @escaping (Error?) -> Void) {} // unsupported
     
     func getFormList(projectID: String!, completion: @escaping (Error?) -> Void) {
         os_log("%s.%s projectID=%s", #file, #function, projectID)

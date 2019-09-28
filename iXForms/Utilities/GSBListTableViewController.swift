@@ -22,7 +22,7 @@ protocol GSBListTableViewCell {
 class GSBListTableViewController: UITableViewController {
     
     var list: Array<Any>! = []
-    var dataSource: GSBListTableViewDataSource?
+    var dataSource: GSBListTableViewDataSource!
     let reuseIdentifier = "CELL"
     var db: Realm!
     var header: String?
@@ -35,11 +35,9 @@ class GSBListTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        if (dataSource != nil) {
-            refreshControl = UIRefreshControl()
-            refreshControl?.attributedTitle = NSAttributedString(string: "Refresh")
-            refreshControl!.addTarget(self, action: #selector(refresh), for: .valueChanged)
-        }
+        refreshControl = UIRefreshControl()
+        refreshControl?.attributedTitle = NSAttributedString(string: "Refresh")
+        refreshControl!.addTarget(self, action: #selector(refresh), for: .valueChanged)
         reload()
     }
 
@@ -48,7 +46,7 @@ class GSBListTableViewController: UITableViewController {
     }
     
     @objc func refresh(refreshControl: UIRefreshControl) {
-        dataSource?.refresh(controller: self, completion: { error in
+        dataSource.refresh(controller: self, completion: { error in
             DispatchQueue.main.async {
                 refreshControl.endRefreshing()
                 if (error == nil) {

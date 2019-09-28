@@ -9,6 +9,8 @@
 import Foundation
 import os.log
 
+import RealmSwift
+
 enum ServerAPI: Int, CaseIterable, CustomStringConvertible {
     case openrosa_aggregate = 1
     case openrosa_central
@@ -40,10 +42,11 @@ enum ServerAPI: Int, CaseIterable, CustomStringConvertible {
 
 protocol GSBServer : GSBListTableViewDataSource {
     var url: URL! {get set}
-
+    var hasProjects: Bool! {get}
+    
     init(url: URL!)
     func login(username: String!, password: String!, completion: @escaping (Error?) -> Void)
-    func getProjectList(completion: @escaping (Error?) -> Void) -> Bool // returns false if projects/groups/categories are unsupported
+    func getProjectList(completion: @escaping (Error?) -> Void)
     func getFormList(projectID: String!, completion: @escaping (Error?) -> Void)
     func getForm(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
     func getSubmissionList(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
@@ -56,8 +59,18 @@ var server: GSBServer? {
         return _server
     }
     set {
-        os_log("%s.%s set server=%s", #file, #function, newValue?.url.absoluteString ?? "(null)")
+        os_log("%s.%s server=%s", #file, #function, newValue?.url.absoluteString ?? "(null)")
+        if let newserver = newValue {
+            // Clear database if new server
+            if let oldURL = _server?.url, oldURL.absoluteString != newserver.url.absoluteString {
+                let db = try! Realm()
+                try! db.write {
+                    os_log("clearing database")
+                    db.deleteAll()
+                }
+                UserDefaults.standard.set(nil, forKey: "projectid") // reset selected project when change servers
+            }
+        }
         _server = newValue
-        NotificationCenter.default.post(name: Notification.Name("GSB_SERVERDIDCHANGE"), object: _server)
     }
 }

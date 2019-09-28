@@ -21,7 +21,7 @@ class GSBFormListViewController: GSBListTableViewController {
         super.viewDidLoad()
      
         let downloadButton = UIBarButtonItem(image: UIImage(named: "icons8-download-30"), style: .plain, target: self, action: #selector(download))
-        let receiveButton = UIBarButtonItem(image: UIImage(named: "icons8-smartphone-tablet-30"), style: .plain, target: self, action: #selector(receive))
+        let receiveButton = UIBarButtonItem(image: UIImage(named: "icons8-smartphone-tablet-to-30"), style: .plain, target: self, action: #selector(receive))
         navigationItem.rightBarButtonItems = [downloadButton,receiveButton]
 
         dateFormat.dateStyle = .medium
@@ -30,10 +30,14 @@ class GSBFormListViewController: GSBListTableViewController {
 
     override func reload() {
         os_log("%s.%s", #file, #function)
-        list = Array(db.objects(XForm.self))
+        if (dataSource as! GSBServer).hasProjects {
+            list = Array(db.objects(XForm.self)) // FIX only get form in project
+        } else {
+            list = Array(db.objects(XForm.self)) // all forms
+        }
         super.reload()
     }
-    
+
     // MARK: - Actions
 
     @objc func download() {
@@ -83,21 +87,29 @@ class GSBFormListViewController: GSBListTableViewController {
         let message = NSMutableAttributedString()
         let style = NSMutableParagraphStyle()
         style.alignment = .left
+        style.lineBreakMode = .byTruncatingTail
 
-        if (form.created != nil) {
-            let created = dateFormat.string(from: form.created!)
-            message.append(NSAttributedString.init(string: "\nCreated: \t\t" + created, attributes: [.paragraphStyle: style]))
-        }
-
-        if (form.updated != nil) {
-            let updated = dateFormat.string(from: form.updated!)
-            message.append(NSAttributedString.init(string: "\nUpdated: \t\t" + updated, attributes: [.paragraphStyle: style]))
+        if let name = form.name {
+            message.append(NSAttributedString.init(string: "\nName: \t\t" + name, attributes: [.paragraphStyle: style]))
         }
         
-        let state = FormState(rawValue: form.state.value!)
-        message.append(NSAttributedString.init(string: "\nStatus: \t\t" + state!.description, attributes: [.paragraphStyle: style]))
+        message.append(NSAttributedString.init(string: "\nID: \t\t\t" + form.id, attributes: [.paragraphStyle: style]))
 
-        let info = UIAlertController(title: "Info", message: nil, preferredStyle: .alert)
+        if let version = form.version, version.count > 0 {
+            message.append(NSAttributedString.init(string: "\nVersion: \t" + version, attributes: [.paragraphStyle: style]))
+        }
+
+        if let created = form.created {
+            message.append(NSAttributedString.init(string: "\nCreated: \t" + dateFormat.string(from: created), attributes: [.paragraphStyle: style]))
+        }
+
+        if let updated = form.updated {
+            message.append(NSAttributedString.init(string: "\nUpdated: \t" + dateFormat.string(from: updated), attributes: [.paragraphStyle: style]))
+        }
+        
+        message.append(NSAttributedString.init(string: "\nStatus: \t" + FormState(rawValue: form.state.value!)!.description, attributes: [.paragraphStyle: style]))
+
+        let info = UIAlertController(title: "Form Info", message: nil, preferredStyle: .alert)
         info.setValue(message, forKey: "attributedMessage")
         info.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(info, animated: true)

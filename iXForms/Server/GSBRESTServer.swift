@@ -14,7 +14,9 @@ import KeychainSwift
 
 class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
     var url: URL!
-    var token: String?
+    var hasProjects: Bool! = true
+    
+    private var token: String?
     private let dateFormatter = DateFormatter()
     
     // MARK: <GSBServer>
@@ -22,7 +24,9 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
     required init(url: URL!) {
         os_log("%s.%s url=%s", #file, #function, url.absoluteString)
         self.url = url
-        token = UserDefaults.standard.string(forKey: "token")
+        
+        token = KeychainSwift().get("token")
+        os_log("token = %s", token ?? "(null)")
 
         dateFormatter.dateFormat = DATETIMEFORMAT
         dateFormatter.locale = Locale.current
@@ -51,10 +55,12 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
                 let session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: nil)
                 let postTask = session.uploadTask(with: request, from: jsonData) { data, response, error in
                     do {
-                        let status = (response as! HTTPURLResponse).statusCode
-                        if (error != nil || status != 200) {
-                            let error = NSError(domain: APP, code: 0, userInfo: [NSLocalizedDescriptionKey: "login failed"])
-                            os_log("%d %s", status, error.localizedDescription)
+                        let code = (response as! HTTPURLResponse).statusCode
+                        if (code != 200) {
+                            let error = NSError(domain: Bundle.main.bundleIdentifier!,
+                                                code: code,
+                                                userInfo: [NSLocalizedDescriptionKey: String(code) + " - " + HTTPURLResponse.localizedString(forStatusCode: code)])
+                            os_log("ERROR: %s", error.localizedDescription)
                             throw error
                         }
                         
@@ -80,7 +86,7 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
         }
     }
     
-    func getProjectList(completion: @escaping (Error?) -> Void) -> Bool {
+    func getProjectList(completion: @escaping (Error?) -> Void) {
         os_log("%s.%s", #file, #function)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
@@ -92,7 +98,7 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("true", forHTTPHeaderField: "X-Extended-Metadata") // include number of forms
 
-            if let token = self.token {
+            if let token = token {
                 request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
             }
 
@@ -111,10 +117,11 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
                     
                     let db = try! Realm()
                     for result in results {
+                        os_log("%@", result)
                         try db.write {
                             var project = db.object(ofType: Project.self, forPrimaryKey: String(result["id"] as! Int)) // FIX
                             if (project == nil) {
-                                // if not, create new form
+                                // if not, create new project
                                 project = Project()
                                 project!.id = String(result["id"] as! Int)
                             }
@@ -131,7 +138,6 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
         } else {
             assertionFailure("malformed request")
         }
-        return true // projects supported
     }
     
     func getFormList(projectID: String!, completion: @escaping (Error?) -> Void) {
@@ -146,10 +152,8 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("true", forHTTPHeaderField: "X-Extended-Metadata") // include submissions, createdBy, ...
 
-            if let token = self.token {
+            if let token = token {
                 request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
-            } else {
-                assertionFailure("no token")
             }
             
             let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
@@ -179,6 +183,7 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
                                 xform!.id = formid
                             }
                             self.updateFormWithDictionary(form: xform!, dict: result)
+                            xform?.projectID = projectID
                             db.create(XForm.self, value: xform!, update: .all) // replace existing form
                         }
                     }

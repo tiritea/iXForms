@@ -41,6 +41,7 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
     var items: [[String:String]] = [] // optional choice list for select/select1 elements (eg label, value, picture, ...)
     var cdata = ""
     var inner = ""
+    var groupID: String? // optional UUID for group element
     
     init(element: String) {
         self.element = element
@@ -87,16 +88,18 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
         os_log("didStartElement: %s", elementName)
         let gsbparser = parser as! GSBXFormParser
         
-        // Check if start parsing new instance
-        if gsbparser.isParsingInstance == false, elementName == XFormElement.instance.rawValue {
-            gsbparser.isParsingInstance = true
-        }
-        
         // Push new handler for this element. Must persist strong reference because parser.delegate is weak...
         childElement = GSBParserDelegate(element: elementName)
         childElement!.attributes = attributeDict
         childElement!.parentElement = self
+        if elementName == XFormElement.group.rawValue {
+            childElement?.groupID = UUID().uuidString
+        }
         parser.delegate = childElement
+        
+        if gsbparser.isParsingInstance == false, elementName == XFormElement.instance.rawValue {
+            gsbparser.isParsingInstance = true
+        }
     }
     
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?)
@@ -200,7 +203,7 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                 } else {
                     binding = nil
                 }
-
+                
                 switch elementName {
                     
                 // ---------- input control
@@ -295,7 +298,17 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                         gsbparser.form.controls.append(control)
                     }
                     
-                // TODO: case XFormElement.group.rawValue :
+                // ---------- group
+                    /*
+                case XFormElement.group.rawValue :
+                    let group = XFormGroup(id: groupID, attributes: attributes!, binding: binding)
+                    let db = try! Realm()
+                    try! db.write {
+                        os_log("adding group = %@", group)
+                        gsbparser.form.groups.append(group)
+                    }
+*/
+                    
                 // TODO: case XFormElement.repeatgroup.rawValue :
 
                 default:

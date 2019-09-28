@@ -106,12 +106,14 @@ class XForm: Object {
     @objc dynamic var updated: Date?
     @objc dynamic var lastSubmission: Date?
     @objc dynamic var url: String?
+    @objc dynamic var projectID: String? // may be nil if projects unsupported
     let numRecords = RealmOptional<Int>() // may be nil
-    let state = RealmOptional<Int>() // FormState
+    let state = RealmOptional<Int>() // see FormState
     var instances = List<String>()
     var bindings = List<XFormBinding>()
     var controls = List<XFormControl>()
-    
+    var groups = List<XFormGroup>()
+
     override static func primaryKey() -> String? {return "id"}
     
     // Icon representing form state
@@ -153,22 +155,23 @@ class XFormBinding: Object {
     @objc dynamic var relevant: String?
     @objc dynamic var calculate: String?
     @objc dynamic var readonly: String?
-    let type = RealmOptional<Int>() // ControlType
+    let type = RealmOptional<Int>() // see ControlType
 }
 
 class XFormControl: Object {
     @objc dynamic var label: String?
     @objc dynamic var hint: String?
     @objc dynamic var appearance: String?
-    @objc dynamic var binding: XFormBinding? // must be optional; see https://stackoverflow.com/questions/50874280
-    let type = RealmOptional<Int>() // ControlType
-    
+    @objc dynamic var binding: XFormBinding? // although all controls must have a binding, in Realm this must still be made an 'optional'; see https://stackoverflow.com/questions/50874280
+    let type = RealmOptional<Int>() // see ControlType
+    @objc dynamic var group: XFormGroup? // parent group (nil if top-level control)
+
     // control-specific properties
-    var items = List<XFormItem>() // select/select1 only
-    let min = RealmOptional<Float>() // range only
-    let max = RealmOptional<Float>() // range only
-    let inc = RealmOptional<Float>() // range only
-    @objc dynamic var mediatype: String? // upload only
+    var items = List<XFormItem>() // needed for select/select1 only
+    let min = RealmOptional<Float>() // needed for range only
+    let max = RealmOptional<Float>() // needed for range only
+    let inc = RealmOptional<Float>() // needed for range only
+    @objc dynamic var mediatype: String? // needed for upload only
     
     convenience init(attributes: [String : String], type: ControlType, binding: XFormBinding!) {
         self.init()
@@ -178,7 +181,24 @@ class XFormControl: Object {
         self.type.value = type.rawValue
         self.binding = binding
     }
+}
 
+class XFormGroup: Object {
+    @objc dynamic var id: String!
+    @objc dynamic var label: String?
+    @objc dynamic var appearance: String?
+    @objc dynamic var binding: XFormBinding? // group only has a binding when it has a relevant expression
+    @objc dynamic var group: XFormGroup? // parent group (nil if top-level group)
+
+    override static func primaryKey() -> String? {return "id"}
+
+    convenience init(id: String!, attributes: [String : String], binding: XFormBinding?) {
+        self.init()
+        self.id = id
+        self.binding = binding
+        label = attributes["label"]
+        appearance = attributes["appearance"]
+    }
 }
 
 class XFormItem: Object {

@@ -55,19 +55,25 @@ class GSBXFormController: FormViewController {
     var xmlDoc: xmlDocPtr?
     var controls: Array<XFormControl>!
     var bindings: Array<XFormBinding>!
-
+    var numRequired: Int!
+    var numAnswered: Int!
+    var progress: Float!
+    
     private let dateFormatter = DateFormatter()
     private let timeFormatter = DateFormatter()
     private let dateTimeFormatter = DateFormatter()
     private let geopointTransformer = GSBGeopointTransformer()
     
+    // Must wait to set target (to self) in init. See https://stackoverflow.com/questions/45153589/selector-in-uibarbuttonitem-not-calling
+    private var submitButton = UIBarButtonItem(image: UIImage(named: "0 Degrees Filled-25"), style: .plain, target: nil, action: #selector(submitForm))
+    private let resetButton = UIBarButtonItem(barButtonSystemItem: .trash, target: nil, action: #selector(resetForm))
+
     convenience init(_ submission: XFormSubmission) {
         self.init()
         form.delegate = self
         
-        xform = submission.xform
-        controls = xform.controls.map { $0 }
-        bindings = xform.bindings.map { $0 }
+        submitButton.target = self
+        resetButton.target = self
 
         // Initialize libxml2 document with primary instance
         let xmlBuffer: [Int8] = Array(submission.xml.utf8).map(Int8.init)
@@ -75,7 +81,8 @@ class GSBXFormController: FormViewController {
         if (xmlDoc == nil) {
             assertionFailure("cannot create xml doc")
         }
-        
+        xform = submission.xform
+
         dateFormatter.dateFormat = DATEFORMAT
         dateFormatter.locale = Locale.current
         timeFormatter.dateFormat = TIMEFORMAT
@@ -117,6 +124,21 @@ class GSBXFormController: FormViewController {
         hidesBottomBarWhenPushed = true
     }
 
+    convenience init(_ submission: XFormSubmission, group: XFormGroup?) {
+        
+        self.init(submission)
+        
+        bindings = xform.bindings.map { $0 }
+        
+        if let group = group {
+            // show only control under this group
+            controls = xform.controls.map { $0 }
+        } else {
+            // show all controls
+            controls = xform.controls.map { $0 }
+        }
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -133,11 +155,58 @@ class GSBXFormController: FormViewController {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        self.navigationItem.title = xform.name
+        self.navigationItem.rightBarButtonItems = [submitButton, resetButton]
+        
+        self.revalidate()
+    }
+    
+    // MARK: Actions
+
+    @objc func submitForm() {
+        os_log("%s.%s", #file, #function)
+        
+        var submitController: UIAlertController!
+        if progress == 1.0 {
+            submitController = UIAlertController(title: "Submit Form",
+                                                 message: nil,
+                                                 preferredStyle: .alert)
+            submitController.addAction(UIAlertAction(title: "Submit", style: .destructive, handler: { action in
+                self.submit()
+            }))
+            submitController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        } else {
+            submitController = UIAlertController(title: String.init(format: "Progress : %.0f%% Complete", progress * 100.0),
+                                                 message: String.init(format: "You have answered %d of %d required questions (%d remaining).", numAnswered, numRequired, numRequired-numAnswered),
+                                                 preferredStyle: .alert)
+            submitController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        }
+        self.present(submitController, animated: true)
+    }
+ 
+    @objc func resetForm() {
+        os_log("%s.%s", #file, #function)
+        
+        let resetController = UIAlertController(title: "Discard Changes",
+                                      message: "Discard all changes and reset this form back to its original state?",
+                                      preferredStyle: .alert)
+        resetController.addAction(UIAlertAction(title: "Discard", style: .destructive, handler: { action in
+            self.reset()
+        }))
+        resetController.addAction(UIAlertAction(title: "Resume", style: .cancel, handler: nil))
+        self.present(resetController, animated: true)
+    }
+
     // MARK: control -> Row
     
     func rowForControl(control: XFormControl, rowid: String) -> BaseRow? {
         let binding = control.binding!
         let node = binding.nodeset
+        
+        let iconInsets = UIEdgeInsets.init(top: 3, left: 6, bottom: 3, right: 0)
         
         // Add required and constraint validation rules
         // See also https://stackoverflow.com/questions/44306449
@@ -222,7 +291,7 @@ class GSBXFormController: FormViewController {
                 os_log("unsupported appearance: %s", control.appearance!)
                 row = ImageRow() {
                     $0.disabled = true
-                    $0.value = UIImage.init(named: "icons8-compass-33")?.withRenderingMode(.alwaysTemplate) // placeholder
+                    $0.value = UIImage.init(named: "icons8-north-direction-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
                     }
                     .cellSetup { cell, row in
                         cell.accessoryView?.tintColor = .systemBlue
@@ -548,7 +617,7 @@ class GSBXFormController: FormViewController {
                     if let uuid = getStringForNode(nodeset: node) {
                         // TODO get image with uuid
                     } else {
-                        $0.value = UIImage.init(named: "icons8-camera-33")?.withRenderingMode(.alwaysTemplate) // placeholder
+                        $0.value = UIImage.init(named: "icons8-camera-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
                     }
                     
                     $0.onChange { row in //4
@@ -568,7 +637,7 @@ class GSBXFormController: FormViewController {
                 os_log("unsupported media type: %s", control.mediatype!)
                 row = ImageRow() {
                     $0.disabled = true
-                    $0.value = UIImage.init(named: "icons8-video-call-33")?.withRenderingMode(.alwaysTemplate) // placeholder
+                    $0.value = UIImage.init(named: "icons8-video-call-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
                     }
                     .cellSetup { cell, row in
                         cell.accessoryView?.tintColor = .systemBlue
@@ -578,7 +647,7 @@ class GSBXFormController: FormViewController {
                 os_log("unsupported media type: %s", control.mediatype!)
                 row = ImageRow() {
                     $0.disabled = true
-                    $0.value = UIImage.init(named: "icons8-voice-33")?.withRenderingMode(.alwaysTemplate) // placeholder
+                    $0.value = UIImage.init(named: "icons8-voice-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
                     }
                     .cellSetup { cell, row in
                         cell.accessoryView?.tintColor = .systemBlue
@@ -588,7 +657,7 @@ class GSBXFormController: FormViewController {
                 os_log("unsupported media type: %s", control.mediatype!)
                 row = ImageRow() {
                     $0.disabled = true
-                    $0.value = UIImage.init(named: "icons8-document-33")?.withRenderingMode(.alwaysTemplate) // placeholder
+                    $0.value = UIImage.init(named: "icons8-document-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
                     }
                     .cellSetup { cell, row in
                         cell.accessoryView?.tintColor = .systemBlue
@@ -600,7 +669,7 @@ class GSBXFormController: FormViewController {
             os_log("unsupported control type: %d", control.type.value!)
             row = ImageRow() {
                 $0.disabled = true
-                $0.value = UIImage.init(named: "icons8-barcode-33")?.withRenderingMode(.alwaysTemplate) // placeholder
+                $0.value = UIImage.init(named: "icons8-barcode-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
                 }
                 .cellSetup { cell, row in
                     cell.accessoryView?.tintColor = .systemBlue
@@ -680,6 +749,24 @@ class GSBXFormController: FormViewController {
     func revalidate() {
         os_log("%s.%s", #file, #function)
         form.validate()
+        
+        // Determine number of required (and relevant) questions, and number of those answered
+        numRequired = 10
+        numAnswered = 4
+        
+        if (numRequired > 0) {
+            progress = (Float(numAnswered) / Float(numRequired))
+        } else {
+            progress = 1.0 // if no required questions then form is already 'Complete' and submittable...
+        }
+        
+        // Update submit button icon to show progress
+        if progress == 1.0 {
+            submitButton.image = UIImage.init(named: "Ok Filled-25") // Complete
+        } else {
+            let deg = Int(progress * 360.0 / 30.0) * 30 // determine nearest 30deg icon
+            submitButton.image = UIImage.init(named: String.init(format: "%d Degrees Filled-25", deg))
+        }
     }
     
     // See https://www.w3.org/TR/xforms11/#evt-refresh
@@ -692,6 +779,10 @@ class GSBXFormController: FormViewController {
         os_log("%s.%s", #file, #function)
     }
 
+    func submit() {
+        os_log("%s.%s", #file, #function)
+    }
+    
     // MARK: <UITableViewDelegate>
 
     // Hint
