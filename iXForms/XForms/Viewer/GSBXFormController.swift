@@ -11,6 +11,7 @@ import os.log
 import Eureka
 import libxml2
 import CoreLocation
+import RealmSwift
 
 // geopoint String <--> CLLocation
 class GSBGeopointTransformer: ValueTransformer {
@@ -58,6 +59,7 @@ class GSBXFormController: FormViewController {
     var numRequired: Int!
     var numAnswered: Int!
     var progress: Float!
+    var group: XFormGroup?
     
     private let dateFormatter = DateFormatter()
     private let timeFormatter = DateFormatter()
@@ -130,27 +132,53 @@ class GSBXFormController: FormViewController {
         
         bindings = xform.bindings.map { $0 }
         
-        if let group = group {
-            // show only control under this group
-            controls = xform.controls.map { $0 }
+        self.group = group // nil if displaying root level of form
+        if self.group == nil {
+            controls = xform.controls.map { $0 } // show root level form controls
         } else {
-            // show all controls
-            controls = xform.controls.map { $0 }
+            // TODO
+            controls = xform.controls.map { $0 } // show only controls within specified group/repeat
         }
     }
 
+/*
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // ----------------
-        
-        var section = Section("Group")
+        let section = Section("All controls")
         form.append(section)
         
         for (index, control) in controls.enumerated() {
             let rowid = "control" + String(index)
             if let row = rowForControl(control: control, rowid: rowid) {
                 section.append(row)
+            }
+        }
+    }
+*/
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        var section: Section?
+        var currentGroup: XFormGroup?
+        
+        let db = try! Realm()
+
+        for (index, control) in controls.enumerated() {
+
+            // Lookup group for this control
+            let controlGroup: XFormGroup? = db.object(ofType: XFormGroup.self, forPrimaryKey: control.groupID) // will return nil if primary key is nil
+            // If group different than previous, then start new section
+            if controlGroup != currentGroup || section == nil {
+                section = Section(controlGroup?.label ?? "")
+                form.append(section!)
+                currentGroup = controlGroup
+            }
+            
+            let rowid = "control" + String(index)
+            if let row = rowForControl(control: control, rowid: rowid) {
+                section!.append(row)
             }
         }
     }
@@ -626,7 +654,7 @@ class GSBXFormController: FormViewController {
                         } else {
                             // Clear previous image
                             self.setValueForControl(control: control, value: nil)
-                            row.value = UIImage.init(named: "icons8-camera-33")
+                            row.value = UIImage.init(named: "icons8-camera-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // restore placeholder
                         }
                     }}
                     .cellSetup { cell, row in
