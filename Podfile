@@ -6,7 +6,7 @@ target 'iXForms' do
   use_frameworks!
 
   # Pods for iXForms
-  pod 'RealmSwift'
+  pod 'RealmSwift', '~> 3.18.0' 
   pod 'Eureka'
   pod 'KeychainSwift', '~> 16.0'
   pod 'XMLMapper'

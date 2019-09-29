@@ -164,7 +164,7 @@ class XFormControl: Object {
     @objc dynamic var appearance: String?
     @objc dynamic var binding: XFormBinding? // although all controls must have a binding, in Realm this must still be made an 'optional'; see https://stackoverflow.com/questions/50874280
     let type = RealmOptional<Int>() // see ControlType
-    @objc dynamic var group: XFormGroup? // parent group (nil if top-level control)
+    @objc dynamic var groupID: String? // enclosing group (nil if this is a top-level control)
 
     // control-specific properties
     var items = List<XFormItem>() // needed for select/select1 only
@@ -175,11 +175,12 @@ class XFormControl: Object {
     
     convenience init(attributes: [String : String], type: ControlType, binding: XFormBinding!) {
         self.init()
+        self.type.value = type.rawValue
+        self.binding = binding
         label = attributes["label"]
         hint = attributes["hint"]
         appearance = attributes["appearance"]
-        self.type.value = type.rawValue
-        self.binding = binding
+        groupID = attributes["group"]
     }
 }
 
@@ -187,17 +188,20 @@ class XFormGroup: Object {
     @objc dynamic var id: String!
     @objc dynamic var label: String?
     @objc dynamic var appearance: String?
-    @objc dynamic var binding: XFormBinding? // group only has a binding when it has a relevant expression
-    @objc dynamic var group: XFormGroup? // parent group (nil if top-level group)
+    @objc dynamic var binding: XFormBinding? // group will only have a binding when it has a relevant expression
+    @objc dynamic var groupID: String? // enclosing *parent* group (nil if this is a top-level group)
+    let repeatable = RealmOptional<Bool>() // false=group, true=repeat
 
     override static func primaryKey() -> String? {return "id"}
 
-    convenience init(id: String!, attributes: [String : String], binding: XFormBinding?) {
+    convenience init(id: String!, attributes: [String : String], binding: XFormBinding?, repeatable: Bool!) {
         self.init()
         self.id = id
         self.binding = binding
+        self.repeatable.value = repeatable
         label = attributes["label"]
         appearance = attributes["appearance"]
+        groupID = attributes["group"]
     }
 }
 

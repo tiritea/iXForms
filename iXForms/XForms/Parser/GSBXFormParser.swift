@@ -92,13 +92,21 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
         childElement = GSBParserDelegate(element: elementName)
         childElement!.attributes = attributeDict
         childElement!.parentElement = self
-        if elementName == XFormElement.group.rawValue {
-            childElement?.groupID = UUID().uuidString
-        }
         parser.delegate = childElement
         
-        if gsbparser.isParsingInstance == false, elementName == XFormElement.instance.rawValue {
-            gsbparser.isParsingInstance = true
+        if gsbparser.isParsingInstance == false {
+            switch elementName {
+                
+            case XFormElement.instance.rawValue :
+                gsbparser.isParsingInstance = true
+
+            case XFormElement.group.rawValue, XFormElement.repeatgroup.rawValue :
+                // need to assign groupID now so that child controls can identify their enclosing group
+                childElement?.groupID = UUID().uuidString
+
+            default :
+                break // nothing to do
+            }
         }
     }
     
@@ -123,7 +131,7 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                 // Do nothing! Ignore sub-elements and just add them to current instance...
             }
         } else {
-            // Finished parsing instance so process this element accordingly
+            // Finished parsing instance so process this XForm element accordingly
             switch elementName {
                 
             case XFormElement.binding.rawValue:
@@ -203,6 +211,13 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                 } else {
                     binding = nil
                 }
+                
+                // Find enclosing parent group/repeatgroup by walking up parentElement hierarchy
+                var group: GSBParserDelegate? = self
+                repeat {
+                    group = group!.parentElement
+                } while group != nil && group!.element != XFormElement.group.rawValue && group!.element != XFormElement.repeatgroup.rawValue
+                attributes!["group"] = group?.groupID // if group is nil then there are no enclosing groups
                 
                 switch elementName {
                     
@@ -298,19 +313,16 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                         gsbparser.form.controls.append(control)
                     }
                     
-                // ---------- group
-                    /*
-                case XFormElement.group.rawValue :
-                    let group = XFormGroup(id: groupID, attributes: attributes!, binding: binding)
+                // ---------- group, repeat
+                case XFormElement.group.rawValue, XFormElement.repeatgroup.rawValue :
+                    let group = XFormGroup(id: groupID, attributes: attributes!, binding: binding, repeatable: (elementName == XFormElement.repeatgroup.rawValue) ? true : false)
                     let db = try! Realm()
                     try! db.write {
                         os_log("adding group = %@", group)
                         gsbparser.form.groups.append(group)
                     }
-*/
+                    // TODO repeat count, ...
                     
-                // TODO: case XFormElement.repeatgroup.rawValue :
-
                 default:
                     os_log("unrecognized element: %s", elementName)
                 } // end control switch

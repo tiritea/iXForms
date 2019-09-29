@@ -153,16 +153,16 @@
 		12960D2E2307C4DE000A7A92 /* icons8-icons8-filled-33@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-icons8-filled-33@3x.png"; sourceTree = "<group>"; };
 		12960D302307C70F000A7A92 /* icons8-info-30@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-info-30@3x.png"; sourceTree = "<group>"; };
 		12960D342308A36B000A7A92 /* icons8-info-25@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icons8-info-25@3x.png"; sourceTree = "<group>"; };
-		12B45D0821FD1B0A00F3064F /* XiphForms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XiphForms.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		12B45D0821FD1B0A00F3064F /* iXForms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iXForms.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		12B45D0B21FD1B0A00F3064F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		12B45D0F21FD1B0A00F3064F /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
 		12B45D1421FD1B0D00F3064F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		12B45D1721FD1B0D00F3064F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		12B45D1921FD1B0D00F3064F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		12B45D1E21FD1B0D00F3064F /* XiphFormsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XiphFormsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12B45D1E21FD1B0D00F3064F /* iXFormsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iXFormsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		12B45D2221FD1B0D00F3064F /* iXFormsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iXFormsTests.swift; sourceTree = "<group>"; };
 		12B45D2421FD1B0D00F3064F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		12B45D2921FD1B0D00F3064F /* XiphFormsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XiphFormsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12B45D2921FD1B0D00F3064F /* iXFormsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iXFormsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		12B45D2D21FD1B0D00F3064F /* iXFormsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iXFormsUITests.swift; sourceTree = "<group>"; };
 		12B45D2F21FD1B0D00F3064F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		12BB609122AB2E39005220CE /* GSBServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GSBServer.swift; sourceTree = "<group>"; };
@@ -352,9 +352,9 @@
 		12B45D0921FD1B0A00F3064F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				12B45D0821FD1B0A00F3064F /* XiphForms.app */,
-				12B45D1E21FD1B0D00F3064F /* XiphFormsTests.xctest */,
-				12B45D2921FD1B0D00F3064F /* XiphFormsUITests.xctest */,
+				12B45D0821FD1B0A00F3064F /* iXForms.app */,
+				12B45D1E21FD1B0D00F3064F /* iXFormsTests.xctest */,
+				12B45D2921FD1B0D00F3064F /* iXFormsUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -515,9 +515,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		12B45D0721FD1B0A00F3064F /* XiphForms */ = {
+		12B45D0721FD1B0A00F3064F /* iXForms */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 12B45D3221FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "XiphForms" */;
+			buildConfigurationList = 12B45D3221FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "iXForms" */;
 			buildPhases = (
 				F5EF0AA3A8B7F07948CA47C0 /* [CP] Check Pods Manifest.lock */,
 				12B45D0421FD1B0A00F3064F /* Sources */,
@@ -529,14 +529,14 @@
 			);
 			dependencies = (
 			);
-			name = XiphForms;
+			name = iXForms;
 			productName = iXForms;
-			productReference = 12B45D0821FD1B0A00F3064F /* XiphForms.app */;
+			productReference = 12B45D0821FD1B0A00F3064F /* iXForms.app */;
 			productType = "com.apple.product-type.application";
 		};
-		12B45D1D21FD1B0D00F3064F /* XiphFormsTests */ = {
+		12B45D1D21FD1B0D00F3064F /* iXFormsTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 12B45D3521FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "XiphFormsTests" */;
+			buildConfigurationList = 12B45D3521FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "iXFormsTests" */;
 			buildPhases = (
 				E9C8A78CD370882346694689 /* [CP] Check Pods Manifest.lock */,
 				12B45D1A21FD1B0D00F3064F /* Sources */,
@@ -548,14 +548,14 @@
 			dependencies = (
 				12B45D2021FD1B0D00F3064F /* PBXTargetDependency */,
 			);
-			name = XiphFormsTests;
+			name = iXFormsTests;
 			productName = iXFormsTests;
-			productReference = 12B45D1E21FD1B0D00F3064F /* XiphFormsTests.xctest */;
+			productReference = 12B45D1E21FD1B0D00F3064F /* iXFormsTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		12B45D2821FD1B0D00F3064F /* XiphFormsUITests */ = {
+		12B45D2821FD1B0D00F3064F /* iXFormsUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 12B45D3821FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "XiphFormsUITests" */;
+			buildConfigurationList = 12B45D3821FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "iXFormsUITests" */;
 			buildPhases = (
 				E048C7BF1B7744FAF212909B /* [CP] Check Pods Manifest.lock */,
 				12B45D2521FD1B0D00F3064F /* Sources */,
@@ -567,9 +567,9 @@
 			dependencies = (
 				12B45D2B21FD1B0D00F3064F /* PBXTargetDependency */,
 			);
-			name = XiphFormsUITests;
+			name = iXFormsUITests;
 			productName = iXFormsUITests;
-			productReference = 12B45D2921FD1B0D00F3064F /* XiphFormsUITests.xctest */;
+			productReference = 12B45D2921FD1B0D00F3064F /* iXFormsUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -595,7 +595,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 12B45D0321FD1B0A00F3064F /* Build configuration list for PBXProject "XiphForms" */;
+			buildConfigurationList = 12B45D0321FD1B0A00F3064F /* Build configuration list for PBXProject "iXForms" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -608,9 +608,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				12B45D0721FD1B0A00F3064F /* XiphForms */,
-				12B45D1D21FD1B0D00F3064F /* XiphFormsTests */,
-				12B45D2821FD1B0D00F3064F /* XiphFormsUITests */,
+				12B45D0721FD1B0A00F3064F /* iXForms */,
+				12B45D1D21FD1B0D00F3064F /* iXFormsTests */,
+				12B45D2821FD1B0D00F3064F /* iXFormsUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -691,28 +691,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-iXForms/Pods-iXForms-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/Eureka/Eureka.framework",
-				"${BUILT_PRODUCTS_DIR}/KeychainSwift/KeychainSwift.framework",
-				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
-				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
-				"${BUILT_PRODUCTS_DIR}/XMLMapper/XMLMapper.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-iXForms/Pods-iXForms-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-			);
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Eureka.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KeychainSwift.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/XMLMapper.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-iXForms/Pods-iXForms-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-iXForms/Pods-iXForms-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-iXForms/Pods-iXForms-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E048C7BF1B7744FAF212909B /* [CP] Check Pods Manifest.lock */ = {
@@ -837,12 +824,12 @@
 /* Begin PBXTargetDependency section */
 		12B45D2021FD1B0D00F3064F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 12B45D0721FD1B0A00F3064F /* XiphForms */;
+			target = 12B45D0721FD1B0A00F3064F /* iXForms */;
 			targetProxy = 12B45D1F21FD1B0D00F3064F /* PBXContainerItemProxy */;
 		};
 		12B45D2B21FD1B0D00F3064F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 12B45D0721FD1B0A00F3064F /* XiphForms */;
+			target = 12B45D0721FD1B0A00F3064F /* iXForms */;
 			targetProxy = 12B45D2A21FD1B0D00F3064F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -1063,7 +1050,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/XiphForms.app/XiphForms";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iXForms.app/iXForms";
 			};
 			name = Debug;
 		};
@@ -1085,7 +1072,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/XiphForms.app/XiphForms";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iXForms.app/iXForms";
 			};
 			name = Release;
 		};
@@ -1134,7 +1121,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		12B45D0321FD1B0A00F3064F /* Build configuration list for PBXProject "XiphForms" */ = {
+		12B45D0321FD1B0A00F3064F /* Build configuration list for PBXProject "iXForms" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				12B45D3021FD1B0D00F3064F /* Debug */,
@@ -1143,7 +1130,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		12B45D3221FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "XiphForms" */ = {
+		12B45D3221FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "iXForms" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				12B45D3321FD1B0D00F3064F /* Debug */,
@@ -1152,7 +1139,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		12B45D3521FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "XiphFormsTests" */ = {
+		12B45D3521FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "iXFormsTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				12B45D3621FD1B0D00F3064F /* Debug */,
@@ -1161,7 +1148,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		12B45D3821FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "XiphFormsUITests" */ = {
+		12B45D3821FD1B0D00F3064F /* Build configuration list for PBXNativeTarget "iXFormsUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				12B45D3921FD1B0D00F3064F /* Debug */,
