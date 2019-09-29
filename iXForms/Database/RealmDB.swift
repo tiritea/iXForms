@@ -191,6 +191,7 @@ class XFormGroup: Object {
     @objc dynamic var binding: XFormBinding? // group will only have a binding when it has a relevant expression
     @objc dynamic var groupID: String? // enclosing *parent* group (nil if this is a top-level group)
     let repeatable = RealmOptional<Bool>() // false=group, true=repeat
+    let fieldlist = RealmOptional<Bool>()
 
     override static func primaryKey() -> String? {return "id"}
 
@@ -199,6 +200,7 @@ class XFormGroup: Object {
         self.id = id
         self.binding = binding
         self.repeatable.value = repeatable
+        self.fieldlist.value = attributes["appearance"]?.contains("field-list") ?? false
         label = attributes["label"]
         appearance = attributes["appearance"]
         groupID = attributes["group"]

@@ -70,6 +70,8 @@ class GSBXFormController: FormViewController {
     private var submitButton = UIBarButtonItem(image: UIImage(named: "0 Degrees Filled-25"), style: .plain, target: nil, action: #selector(submitForm))
     private let resetButton = UIBarButtonItem(barButtonSystemItem: .trash, target: nil, action: #selector(resetForm))
 
+    // MARK: Initialization
+
     convenience init(_ submission: XFormSubmission) {
         self.init()
         form.delegate = self
@@ -141,22 +143,6 @@ class GSBXFormController: FormViewController {
         }
     }
 
-/*
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        let section = Section("All controls")
-        form.append(section)
-        
-        for (index, control) in controls.enumerated() {
-            let rowid = "control" + String(index)
-            if let row = rowForControl(control: control, rowid: rowid) {
-                section.append(row)
-            }
-        }
-    }
-*/
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -183,6 +169,33 @@ class GSBXFormController: FormViewController {
         }
     }
 
+    func viewDidLoad2() {
+        super.viewDidLoad()
+        
+        var section: Section?
+        var currentGroup: XFormGroup?
+
+        let db = try! Realm()
+
+        for (index, control) in controls.enumerated() {
+
+            // Lookup group for this control
+            let controlGroup: XFormGroup? = db.object(ofType: XFormGroup.self, forPrimaryKey: control.groupID) // will return nil if primary key is nil
+            
+            // If group different than previous, then start new section
+            if controlGroup != currentGroup || section == nil {
+                section = Section(controlGroup?.label ?? "")
+                form.append(section!)
+                currentGroup = controlGroup
+            }
+            
+            let rowid = "control" + String(index)
+            if let row = rowForControl(control: control, rowid: rowid) {
+                section!.append(row)
+            }
+        }
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -192,7 +205,7 @@ class GSBXFormController: FormViewController {
         self.revalidate()
     }
     
-    // MARK: Actions
+    // MARK: UI Actions
 
     @objc func submitForm() {
         os_log("%s.%s", #file, #function)
@@ -228,7 +241,7 @@ class GSBXFormController: FormViewController {
         self.present(resetController, animated: true)
     }
 
-    // MARK: control -> Row
+    // MARK: XFormControl -> Row
     
     func rowForControl(control: XFormControl, rowid: String) -> BaseRow? {
         let binding = control.binding!
@@ -751,6 +764,8 @@ class GSBXFormController: FormViewController {
         self.refresh()
     }
 
+    // MARK: XForm Events
+    
     // See https://www.w3.org/TR/xforms11/#evt-recalculate
     func recalculate(nodeset: String!) {
         os_log("%s.%s nodeset=%s", #file, #function, nodeset)
