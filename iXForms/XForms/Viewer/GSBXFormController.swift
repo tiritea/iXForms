@@ -86,6 +86,8 @@ class GSBXFormController: FormViewController {
             assertionFailure("cannot create xml doc")
         }
         xform = submission.xform
+        bindings = xform.bindings.map { $0 }
+        controls = xform.controls.map { $0 }
 
         dateFormatter.dateFormat = DATEFORMAT
         dateFormatter.locale = Locale.current
@@ -129,18 +131,8 @@ class GSBXFormController: FormViewController {
     }
 
     convenience init(_ submission: XFormSubmission, group: XFormGroup?) {
-        
         self.init(submission)
-        
-        bindings = xform.bindings.map { $0 }
-        
-        self.group = group // nil if displaying root level of form
-        if self.group == nil {
-            controls = xform.controls.map { $0 } // show root level form controls
-        } else {
-            // TODO
-            controls = xform.controls.map { $0 } // show only controls within specified group/repeat
-        }
+        self.group = group
     }
 
     override func viewDidLoad() {
@@ -149,44 +141,13 @@ class GSBXFormController: FormViewController {
         var section: Section?
         var currentGroup: XFormGroup?
         
-        let db = try! Realm()
-
         for (index, control) in controls.enumerated() {
 
-            // Lookup group for this control
-            let controlGroup: XFormGroup? = db.object(ofType: XFormGroup.self, forPrimaryKey: control.groupID) // will return nil if primary key is nil
-            // If group different than previous, then start new section
-            if controlGroup != currentGroup || section == nil {
-                section = Section(controlGroup?.label ?? "")
+            // If group different than previous, start new section
+            if control.group != currentGroup || section == nil {
+                currentGroup = control.group
+                section = Section(currentGroup?.label ?? "")
                 form.append(section!)
-                currentGroup = controlGroup
-            }
-            
-            let rowid = "control" + String(index)
-            if let row = rowForControl(control: control, rowid: rowid) {
-                section!.append(row)
-            }
-        }
-    }
-
-    func viewDidLoad2() {
-        super.viewDidLoad()
-        
-        var section: Section?
-        var currentGroup: XFormGroup?
-
-        let db = try! Realm()
-
-        for (index, control) in controls.enumerated() {
-
-            // Lookup group for this control
-            let controlGroup: XFormGroup? = db.object(ofType: XFormGroup.self, forPrimaryKey: control.groupID) // will return nil if primary key is nil
-            
-            // If group different than previous, then start new section
-            if controlGroup != currentGroup || section == nil {
-                section = Section(controlGroup?.label ?? "")
-                form.append(section!)
-                currentGroup = controlGroup
             }
             
             let rowid = "control" + String(index)

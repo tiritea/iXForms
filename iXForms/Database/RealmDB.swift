@@ -164,7 +164,6 @@ class XFormControl: Object {
     @objc dynamic var appearance: String?
     @objc dynamic var binding: XFormBinding? // although all controls must have a binding, in Realm this must still be made an 'optional'; see https://stackoverflow.com/questions/50874280
     let type = RealmOptional<Int>() // see ControlType
-    @objc dynamic var groupID: String? // enclosing group (nil if this is a top-level control)
 
     // control-specific properties
     var items = List<XFormItem>() // needed for select/select1 only
@@ -173,6 +172,15 @@ class XFormControl: Object {
     let inc = RealmOptional<Float>() // needed for range only
     @objc dynamic var mediatype: String? // needed for upload only
     
+    // DEPRECATE in favor of assigning XFormGroup during parsing
+    @objc dynamic var groupID: String?
+    var group: XFormGroup? {
+        get {
+            let db = try! Realm()
+            return db.object(ofType: XFormGroup.self, forPrimaryKey: self.groupID)
+        }
+    }
+    
     convenience init(attributes: [String : String], type: ControlType, binding: XFormBinding!) {
         self.init()
         self.type.value = type.rawValue
@@ -180,30 +188,37 @@ class XFormControl: Object {
         label = attributes["label"]
         hint = attributes["hint"]
         appearance = attributes["appearance"]
-        groupID = attributes["group"]
+        groupID = attributes["group"] // DEPRECATE
     }
 }
 
 class XFormGroup: Object {
-    @objc dynamic var id: String!
     @objc dynamic var label: String?
     @objc dynamic var appearance: String?
     @objc dynamic var binding: XFormBinding? // group will only have a binding when it has a relevant expression
-    @objc dynamic var groupID: String? // enclosing *parent* group (nil if this is a top-level group)
     let repeatable = RealmOptional<Bool>() // false=group, true=repeat
     let fieldlist = RealmOptional<Bool>()
 
+    // DEPRECATE in favor of assigning parent XFormGroup during parsing
+    @objc dynamic var id: String!
     override static func primaryKey() -> String? {return "id"}
+    @objc dynamic var groupID: String?
+    var parent: XFormGroup? {
+        get {
+            let db = try! Realm()
+            return db.object(ofType: XFormGroup.self, forPrimaryKey: self.groupID)
+        }
+    }
 
     convenience init(id: String!, attributes: [String : String], binding: XFormBinding?, repeatable: Bool!) {
         self.init()
-        self.id = id
+        self.id = id // DEPRECATE?
         self.binding = binding
         self.repeatable.value = repeatable
         self.fieldlist.value = attributes["appearance"]?.contains("field-list") ?? false
         label = attributes["label"]
         appearance = attributes["appearance"]
-        groupID = attributes["group"]
+        groupID = attributes["group"] // DEPRECATE
     }
 }
 
