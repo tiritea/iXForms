@@ -13,6 +13,55 @@ import libxml2
 import CoreLocation
 import RealmSwift
 
+// ---------------------
+
+// Push custom view controller
+// https://github.com/xmartlabs/Eureka/issues/1282
+open class PresenterRow<Cell: CellType, PresentedControllerType: TypedRowControllerType>: OptionsRow<Cell>, PresenterRowType where Cell: BaseCell, PresentedControllerType: UIViewController, PresentedControllerType.RowValue == Cell.Value {
+
+    public var presentationMode: PresentationMode<PresentedControllerType>?
+    public var onPresentCallback: ((FormViewController, PresentedControllerType) -> Void)?
+
+    required public init(tag: String?) {
+        super.init(tag: tag)
+        presentationMode = .show(controllerProvider: ControllerProvider.callback {
+            return PresentedControllerType.init()
+            }, onDismiss: { vc in
+                _ = vc.navigationController?.popViewController(animated: true)
+        })
+    }
+    
+    open override func customDidSelect() {
+        super.customDidSelect()
+        guard let presentationMode = presentationMode, !isDisabled else { return }
+        if let controller = presentationMode.makeController() {
+            controller.row = self
+            controller.title = selectorTitle ?? controller.title
+            onPresentCallback?(cell.formViewController()!, controller)
+            presentationMode.present(controller, row: self, presentingController: self.cell.formViewController()!)
+        } else {
+            presentationMode.present(nil, row: self, presentingController: self.cell.formViewController()!)
+        }
+    }
+}
+
+// ---------------------
+
+final class MyCustomPresenterRow: PresenterRow<PushSelectorCell<String>, MyCustomViewController>, RowType {}
+
+class MyCustomViewController: UIViewController, TypedRowControllerType {
+    var row: RowOf<String>!
+    var onDismissCallback: ((UIViewController) -> Void)?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        row.value = "Foo"
+        view.backgroundColor = .red
+    }
+}
+
+// ---------------------
+
 // geopoint String <--> CLLocation
 class GSBGeopointTransformer: ValueTransformer {
     
@@ -134,7 +183,7 @@ class GSBXFormController: FormViewController {
         self.init(submission)
         self.group = group
     }
-
+/*
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -150,6 +199,36 @@ class GSBXFormController: FormViewController {
                 form.append(section!)
             }
             
+            let rowid = "control" + String(index)
+            if let row = rowForControl(control: control, rowid: rowid) {
+                section!.append(row)
+            }
+        }
+    }
+*/
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        var section: Section?
+        var currentGroup: XFormGroup?
+        var currentSubpage: XFormGroup?
+
+        for (index, control) in controls.enumerated() {
+
+            // If group different than previous, start new section
+            if control.group != currentGroup || section == nil {
+                currentGroup = control.group
+                section = Section(currentGroup?.label ?? "")
+                form.append(section!)
+            }
+            
+            // HACK
+            if let group = control.group {
+                if let row = rowForGroup(group: group, rowid: "group" + String(index)) {
+                    section!.append(row)
+                }
+            }
+
             let rowid = "control" + String(index)
             if let row = rowForControl(control: control, rowid: rowid) {
                 section!.append(row)
@@ -202,8 +281,22 @@ class GSBXFormController: FormViewController {
         self.present(resetController, animated: true)
     }
 
-    // MARK: XFormControl -> Row
+    // MARK: XFormGroup -> Row
     
+    func rowForGroup(group: XFormGroup, rowid: String) -> BaseRow? {
+        let binding = group.binding
+        let node = binding?.nodeset
+
+        // https://github.com/xmartlabs/Eureka/issues/1282
+        let row = MyCustomPresenterRow() { row in
+            row.tag = rowid
+            row.title = group.label
+        }
+        return row
+    }
+
+    // MARK: XFormControl -> Row
+
     func rowForControl(control: XFormControl, rowid: String) -> BaseRow? {
         let binding = control.binding!
         let node = binding.nodeset
@@ -559,14 +652,34 @@ class GSBXFormController: FormViewController {
             }
 
         case ControlType.boolean.rawValue :
-            row = SwitchRow() {
-                $0.value = getBoolForNode(nodeset: node) // Note: null -> 0
-                $0.onCellHighlightChanged { cell, row in
-                    if !row.isHighlighted { // lost focus (ie finished editing)
-                        if let value = row.value {
-                            self.setValueForControl(control: control, value: (value ? "true" : "false")) // Bool -> "true"/"false"
-                        } else {
-                            self.setValueForControl(control: control, value: nil)
+            switch control.appearance {
+                
+            // ---------- checkmark
+            case "checkmark" :
+                row = SwitchRow() {
+                    $0.value = getBoolForNode(nodeset: node) // Note: null -> 0
+                    $0.onCellHighlightChanged { cell, row in
+                        if !row.isHighlighted { // lost focus (ie finished editing)
+                            if let value = row.value {
+                                self.setValueForControl(control: control, value: (value ? "true" : "false")) // Bool -> "true"/"false"
+                            } else {
+                                self.setValueForControl(control: control, value: nil)
+                            }
+                        }
+                    }
+                }
+
+            // ---------- switch
+            default: // "switch"
+                row = CheckRow() {
+                    $0.value = getBoolForNode(nodeset: node) // Note: null -> 0
+                    $0.onCellHighlightChanged { cell, row in
+                        if !row.isHighlighted { // lost focus (ie finished editing)
+                            if let value = row.value {
+                                self.setValueForControl(control: control, value: (value ? "true" : "false")) // Bool -> "true"/"false"
+                            } else {
+                                self.setValueForControl(control: control, value: nil)
+                            }
                         }
                     }
                 }
@@ -697,22 +810,6 @@ class GSBXFormController: FormViewController {
         if let readonly = control.binding?.readonly, readonly == "true()" {
             row.disabled = true
         }
-        
-        // Add required and constraint validation rules to row
-        /*
-        if let r = row as? Row {
-            r.add(ruleSet: rules)
-         r.va
-        }
-        */
-        
-        // https://stackoverflow.com/questions/42300800/swift-3-eureka-validation-uilabels-with-errors
-        /*
-        if let required = control.binding?.required, required == "true()" {
-            //row.isHighlighted = true
-            row.baseCell.textLabel?.textColor = .red
-        }
-        */
         
         return row
     }
