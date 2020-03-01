@@ -53,7 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         IntRow.defaultCellSetup = { (cell, row) in
-            // remove IntRow separator (eg "1,234" -> "1234")
+            // Remove IntRow separator (eg "1,234" -> "1234")
             row.useFormatterDuringInput = true
             let formatter = NumberFormatter()
             formatter.groupingSeparator = ""
@@ -64,7 +64,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         SegmentedRow<String>.defaultCellSetup = { (cell, row) in
-            // minimize segment width - https://github.com/xmartlabs/Eureka/issues/973
+            // Minimize segment width; see https://github.com/xmartlabs/Eureka/issues/973
             cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
             cell.segmentedControl.apportionsSegmentWidthsByContent = true
             cell.tintColor = .control
@@ -92,7 +92,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         ValueTransformer.setValueTransformer(GSBGeopointTransformer(), forName: NSValueTransformerName("GSBGeopointTransformer"))
 
-        // Lookup previously saved API+server, otherwise use default
+        // Lookup previously saved API & server, otherwise use default
         let api: ServerAPI = ServerAPI(rawValue: UserDefaults.standard.integer(forKey: "api")) ?? DEFAULTAPI // note: UserDefaults will return 0 integer if key doesn't exist
         UserDefaults.standard.set(api.rawValue, forKey: "api")
         os_log("api = %s", api.description)
@@ -106,13 +106,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         os_log("url = %s", url!.absoluteString)
         
-        // Lookup previously saved project
+        // Lookup previous project (or null if none)
         if let project = UserDefaults.standard.string(forKey: "project") {
             let db = try! Realm()
             currentProject = db.object(ofType: Project.self, forPrimaryKey :project)
         }
-        os_log("projectID = %s", currentProject?.id ?? "(null)")
+        os_log("projectID = %s", currentProject?.id ?? "none")
 
+        // Create API-specific server handler
         switch api {
         case .openrosa_aggregate: server = GSBOpenRosaServer(url: url)
         case .openrosa_central: server = GSBOpenRosaServer(url: url)
@@ -121,6 +122,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         case .rest_gomobile: server = GSBRESTServer(url: url)
         }
 
+        // Main application tabs:
+        // 0 = Forms
         formsController = GSBFormListViewController()
         formsController.dataSource = server
         formsController.navigationItem.leftBarButtonItems = [projectListButton, projectInfoButton]
@@ -129,6 +132,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         formsTab.tabBarItem = UITabBarItem(title: "Forms", image: UIImage(named: "icons8-paste-33"), selectedImage: UIImage(named: "icons8-paste-filled-33"))
         formsTab.tabBarItem.tag = 0
         
+        // 1 = Submissions
         submissionsController = GSBListTableViewController()
         submissionsController.dataSource = server
         submissionsController.navigationItem.leftBarButtonItems = [projectListButton, projectInfoButton]
@@ -137,12 +141,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         submissionsTab.tabBarItem = UITabBarItem(title: "Submissions", image: UIImage(named: "icons8-documents-33"), selectedImage: UIImage(named: "icons8-documents-filled-33"))
         submissionsTab.tabBarItem.tag = 1
         
+        // 2 = Settings
         let settingsController = GSBSettingsViewController()
         settingsController.title = "Settings"
         settingsController.tabBarItem = UITabBarItem(title: settingsController.title, image: UIImage(named: "icons8-settings-33"), selectedImage: UIImage(named: "icons8-settings-filled-33"))
         settingsController.tabBarItem.tag = 2
         
-        let helpController = UIViewController()
+        // 3 = Help
+        let helpController = UIViewController() // STUB
         helpController.title = "Help"
         helpController.view.backgroundColor = UIColor.blue
         helpController.tabBarItem = UITabBarItem(title: helpController.title, image: UIImage(named: "icons8-help-33"), selectedImage: UIImage(named: "icons8-help-filled-33"))
@@ -188,7 +194,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let db = try! Realm()
         for project in Array(db.objects(Project.self)) {
             var style: UIAlertAction.Style = .default
-            // 'highlight' current project
+            // 'highlight' the current selected project
             if let current = currentProject, current.id == project.id {
                 style = .cancel
             }
@@ -196,7 +202,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // https://realm.io/blog/obj-c-swift-2-2-thread-safe-reference-sort-properties-relationships/
             let projectRef = ThreadSafeReference(to: project)
             
-            let title = project.name ?? project.id // project name is optional in Central
+            let title = project.name ?? project.id // fallback to project id, because project name is optional in Central...
             picker.addAction(UIAlertAction(title: title, style: style, handler: { action in
                 // self.currentProject = project
                 let db = try! Realm()
@@ -243,7 +249,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 message.append(NSAttributedString.init(string: "\nArchived: \t" + archived, attributes: [.paragraphStyle: style]))
             }
             
-            let info = UIAlertController(title: "Project Info", message: nil, preferredStyle: .alert)
+            let info = UIAlertController(title: "Project Details", message: nil, preferredStyle: .alert)
             info.setValue(message, forKey: "attributedMessage")
             info.addAction(UIAlertAction(title: "OK", style: .cancel))
             rootController.present(info, animated: true)
@@ -256,7 +262,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         server!.getProjectList() { error in
             if (error == nil) {
                 if (self.currentProject == nil) {
-                    self.changeProject() // will refresh
+                    self.changeProject() // this will initiate refresh, so can return
                     return
                 }
             }

@@ -1,0 +1,36 @@
+PODS:
+  - Eureka (5.0.1)
+  - KeychainSwift (16.0.1)
+  - Realm (3.18.0):
+    - Realm/Headers (= 3.18.0)
+  - Realm/Headers (3.18.0)
+  - RealmSwift (3.18.0):
+    - Realm (= 3.18.0)
+  - XMLMapper (1.5.3):
+    - XMLMapper/Core (= 1.5.3)
+  - XMLMapper/Core (1.5.3)
+
+DEPENDENCIES:
+  - Eureka
+  - KeychainSwift (~> 16.0)
+  - RealmSwift (~> 3.18.0)
+  - XMLMapper
+
+SPEC REPOS:
+  trunk:
+    - Eureka
+    - KeychainSwift
+    - Realm
+    - RealmSwift
+    - XMLMapper
+
+SPEC CHECKSUMS:
+  Eureka: da9d2294da234eae40b22e7273b9fc2335502fc1
+  KeychainSwift: 4209611373ca4a098e09b1e547eebd87c544dcc4
+  Realm: 7b3d04740facf45e958a514b466a32b04f1113d6
+  RealmSwift: c817b5f374668cf08f649afb05f55d92a787649c
+  XMLMapper: 26bfd75cd204b514b608a41681415f2bdbac1053
+
+PODFILE CHECKSUM: 6392fe1e46814490fc9f9b9bf7fd79d14ae89c91
+
+COCOAPODS: 1.8.1

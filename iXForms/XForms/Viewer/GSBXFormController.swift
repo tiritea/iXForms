@@ -61,6 +61,22 @@ class MyCustomViewController: UIViewController, TypedRowControllerType {
 }
 
 // ---------------------
+/*
+final class GSBXFormRow: PresenterRow<PushSelectorCell<String>, GSBXFormController>, RowType {}
+
+class GSBXFormController: UIViewController, TypedRowControllerType {
+    var row: RowOf<String>!
+    var onDismissCallback: ((UIViewController) -> Void)?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        row.value = "Foo"
+        view.backgroundColor = .red
+    }
+}
+*/
+
+// ---------------------
 
 // geopoint String <--> CLLocation
 class GSBGeopointTransformer: ValueTransformer {
@@ -222,13 +238,15 @@ class GSBXFormController: FormViewController {
                 form.append(section!)
             }
             
-            // HACK
+            // HACK to test pushing subpage
+            /*
             if let group = control.group {
                 if let row = rowForGroup(group: group, rowid: "group" + String(index)) {
                     section!.append(row)
                 }
             }
-
+*/
+            
             let rowid = "control" + String(index)
             if let row = rowForControl(control: control, rowid: rowid) {
                 section!.append(row)
@@ -260,7 +278,7 @@ class GSBXFormController: FormViewController {
             }))
             submitController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         } else {
-            submitController = UIAlertController(title: String.init(format: "Progress : %.0f%% Complete", progress * 100.0),
+            submitController = UIAlertController(title: String.init(format: "Progress = %.0f%% Complete", progress * 100.0),
                                                  message: String.init(format: "You have answered %d of %d required questions (%d remaining).", numAnswered, numRequired, numRequired-numAnswered),
                                                  preferredStyle: .alert)
             submitController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
@@ -277,7 +295,7 @@ class GSBXFormController: FormViewController {
         resetController.addAction(UIAlertAction(title: "Discard", style: .destructive, handler: { action in
             self.reset()
         }))
-        resetController.addAction(UIAlertAction(title: "Resume", style: .cancel, handler: nil))
+        resetController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         self.present(resetController, animated: true)
     }
 
