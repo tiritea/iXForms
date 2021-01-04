@@ -66,7 +66,7 @@ class GSBFormTableViewCell: UITableViewCell, GSBListTableViewCell {
         detailTextLabel?.numberOfLines = 0
         detailTextLabel?.textColor = UIColor.gray
         accessoryType = .detailButton
-        tintColor = .control // info button
+        //tintColor = .control // info button
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -151,19 +151,34 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                     if let type = self.attributes!["type"] {
                         switch type {
                         // XForm binding types
-                        case ControlType.string.description : binding.type.value = ControlType.string.rawValue
-                        case ControlType.date.description : binding.type.value = ControlType.date.rawValue
-                        case ControlType.time.description : binding.type.value = ControlType.time.rawValue
-                        case ControlType.datetime.description : binding.type.value = ControlType.datetime.rawValue
-                        case ControlType.integer.description : binding.type.value = ControlType.integer.rawValue
-                        case ControlType.decimal.description : binding.type.value = ControlType.decimal.rawValue
-                        case ControlType.geopoint.description : binding.type.value = ControlType.geopoint.rawValue
-                        case ControlType.geotrace.description : binding.type.value = ControlType.geotrace.rawValue
-                        case ControlType.geoshape.description : binding.type.value = ControlType.geoshape.rawValue
-                        case ControlType.boolean.description : binding.type.value = ControlType.boolean.rawValue
-                        case ControlType.barcode.description : binding.type.value = ControlType.barcode.rawValue
-                        case ControlType.binary.description : binding.type.value = ControlType.binary.rawValue
-                            
+                        case ControlType.string.description :
+                            binding.type.value = ControlType.string.rawValue
+                        case ControlType.date.description :
+                            binding.type.value = ControlType.date.rawValue
+                        case ControlType.time.description :
+                            binding.type.value = ControlType.time.rawValue
+                        case ControlType.datetime.description :
+                            binding.type.value = ControlType.datetime.rawValue
+                        case ControlType.integer.description :
+                            binding.type.value = ControlType.integer.rawValue
+                        case ControlType.decimal.description :
+                            binding.type.value = ControlType.decimal.rawValue
+                        case ControlType.boolean.description :
+                            binding.type.value = ControlType.boolean.rawValue
+                        case ControlType.barcode.description :
+                            binding.type.value = ControlType.barcode.rawValue
+                        case ControlType.binary.description :
+                            binding.type.value = ControlType.binary.rawValue
+                        case ControlType.geopoint.description :
+                            binding.type.value = ControlType.geopoint.rawValue
+                            gsbparser.form.isGeoreferenced = true
+                        case ControlType.geotrace.description :
+                            binding.type.value = ControlType.geotrace.rawValue
+                            gsbparser.form.isGeoreferenced = true
+                        case ControlType.geoshape.description :
+                            binding.type.value = ControlType.geoshape.rawValue
+                            gsbparser.form.isGeoreferenced = true
+                        
                         // ODK-specific binding types
                         case ControlType.rank.description : binding.type.value = ControlType.rank.rawValue
                         case "select", "select1" : binding.type.value = ControlType.string.rawValue
@@ -223,8 +238,15 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                     
                 // ---------- input control
                 case XFormElement.input.rawValue :
-                    let type = ControlType(rawValue: binding!.type.value!) // determine input control type from the associated binding type
-                    let control = XFormControl(attributes: attributes!, type: type!, binding: binding!)
+                    //let type = ControlType(rawValue: binding!.type.value!) // determine input control type from the associated binding type
+                    //let control = XFormControl(attributes: attributes!, type: type, binding: binding!)
+                    let type: ControlType
+                    if binding != nil {
+                        type = ControlType(rawValue: binding!.type.value!)! // determine input control type from the associated binding type
+                    } else {
+                        type = ControlType.string // default string type when control has no binding
+                    }
+                    let control = XFormControl(attributes: attributes!, type: type, binding: binding)
                     let db = try! Realm()
                     try! db.write {
                         os_log("adding input control = %@", control)
@@ -273,9 +295,9 @@ private class GSBParserDelegate: NSObject, XMLParserDelegate {
                 // ---------- range control
                 case XFormElement.range.rawValue :
                     let control = XFormControl(attributes: attributes!, type: ControlType.range, binding: binding)
-                    control.min.value = Float(attributes!["start"] as String!)
-                    control.max.value = Float(attributes!["end"] as String!)
-                    control.inc.value = Float(attributes!["step"] as String!)
+                    control.min.value = Float(attributes!["start"]! as String)
+                    control.max.value = Float(attributes!["end"]! as String)
+                    control.inc.value = Float(attributes!["step"]! as String)
                     
                     let db = try! Realm()
                     try! db.write {

@@ -8,6 +8,62 @@
 
 import Foundation
 import RealmSwift
+import CoreLocation
+
+// geopoint String <--> CLLocation
+class GSBGeopointTransformer: ValueTransformer {
+    
+    override class func transformedValueClass() -> AnyClass {
+        return NSString.self
+    }
+    
+    override class func allowsReverseTransformation() -> Bool {
+        return true
+    }
+    
+    func displayValue(_ value: Any?) -> String? {
+        if let location = value as? CLLocation {
+            let format: String
+            if location.horizontalAccuracy < 100 {
+                format = "%.4f°%@, %.4f°W" // 4 decimal places is approx 11m
+            } else {
+                format = "%.3f°%@, %.3f°W" // 3 decimal places is approx 111m
+            }
+            let dir = location.coordinate.latitude > 0 ? "N" : "S"
+            let str = String(format:format, abs(location.coordinate.latitude), dir, location.coordinate.longitude)
+            if (location.horizontalAccuracy != 0) {
+                return str + String(format:" (±%.0fm)", location.horizontalAccuracy)
+            } else {
+                return str
+            }
+        }
+        return nil
+    }
+    
+    // CLLocation -> geopoint String
+    override func transformedValue(_ value: Any?) -> Any? {
+        if let location = value as? CLLocation {
+            let geopoint = String(format:"%5f %5f ", location.coordinate.latitude, location.coordinate.longitude)  // 5 decimal places is approx 1m
+            if (location.altitude == 0 && location.horizontalAccuracy == 0) {
+                return geopoint + "0 0"
+            } else {
+                return geopoint + String(format:"%f %f", location.altitude, location.horizontalAccuracy)
+            }
+        }
+        return nil
+    }
+    
+    // geopoint String -> CLLocation
+    override func reverseTransformedValue(_ value: Any?) -> Any? {
+        if let geopoint = value as? String {
+            let coords = geopoint.split(separator: " ").compactMap { Double($0) } // compactMap will remove nil results!
+            if coords.count >= 2 {
+                return CLLocation(latitude: coords[0], longitude: coords[1]) // ignore altitude and accuracy
+            }
+        }
+        return nil
+    }
+}
 
 enum FormState: Int, CustomStringConvertible {
     case open = 0
@@ -107,6 +163,7 @@ class XForm: Object {
     @objc dynamic var lastSubmission: Date?
     @objc dynamic var url: String?
     @objc dynamic var projectID: String? // may be nil if projects unsupported
+    @objc dynamic var isGeoreferenced = false
     let numRecords = RealmOptional<Int>() // may be nil
     let state = RealmOptional<Int>() // see FormState
     var instances = List<String>()
@@ -115,6 +172,29 @@ class XForm: Object {
     var groups = List<XFormGroup>()
 
     override static func primaryKey() -> String? {return "id"}
+    
+    static let geopointTransformer = GSBGeopointTransformer()
+
+    static let dateFormat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale.current
+        return formatter
+    }()
+    
+    static let timeFormat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SZ"
+        formatter.locale = Locale.current
+        return formatter
+    }()
+    
+    static let dateTimeFormat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SZ"
+        formatter.locale = Locale.current
+        return formatter
+    }()
     
     // Icon representing form state
     func icon() -> UIImage {
@@ -164,6 +244,7 @@ class XFormControl: Object {
     @objc dynamic var appearance: String?
     @objc dynamic var binding: XFormBinding? // although all controls must have a binding, in Realm this must still be made an 'optional'; see https://stackoverflow.com/questions/50874280
     let type = RealmOptional<Int>() // see ControlType
+    @objc dynamic var ref: String? // only need original ref when control doesn't have an associated binding (otherwise the binding provides the nodeset)
 
     // control-specific properties
     var items = List<XFormItem>() // needed for select/select1 only
@@ -188,6 +269,7 @@ class XFormControl: Object {
         label = attributes["label"]
         hint = attributes["hint"]
         appearance = attributes["appearance"]
+        ref = attributes["ref"]
         groupID = attributes["group"] // DEPRECATE
     }
 }
@@ -237,6 +319,8 @@ class XFormSubmission: Object {
     @objc dynamic var id: String!
     @objc dynamic var xml: String!
     @objc dynamic var xform: XForm! // vs formid?
+    // https://stackoverflow.com/questions/38806852
+    dynamic let attachments = List<String>() // filenames
     
     override static func primaryKey() -> String? {return "id"}
 

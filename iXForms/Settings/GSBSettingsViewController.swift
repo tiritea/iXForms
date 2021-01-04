@@ -11,6 +11,7 @@ import os.log
 import Eureka
 import KeychainSwift
 import RealmSwift
+import ImageRow
 
 class GSBSettingsViewController: FormViewController {
     
@@ -38,7 +39,7 @@ class GSBSettingsViewController: FormViewController {
             $0.options = ServerAPI.allCases.map{ $0.description }
             }
             .onChange { row in
-                if let selected = row.value, let index = row.options!.index(of: selected) {
+                if let selected = row.value, let index = row.options!.firstIndex(of: selected) {
                     self.api = ServerAPI(rawValue: index+1)!
 
                     // initialize url to the default server for new API
@@ -140,7 +141,7 @@ class GSBSettingsViewController: FormViewController {
             $0.disabled = true // will disable image functions, but can still select cell to open URL
             }
             .cellSetup { cell, row in
-                cell.tintColor = .control
+                cell.tintColor = .systemBlue
             }
             .onCellSelection { cell, row in
                 UIApplication.shared.open(URL(string: "https://github.com/tiritea")!, options: [:], completionHandler: nil)
@@ -153,7 +154,7 @@ class GSBSettingsViewController: FormViewController {
             $0.disabled = true // will disable image functions, but can still select cell to open URL
             }
             .cellSetup { cell, row in
-                cell.tintColor = .control
+                cell.tintColor = .systemBlue
             }
             .onCellSelection { cell, row in
                 UIApplication.shared.open(URL(string: "https://icons8.com")!, options: [:], completionHandler: nil)

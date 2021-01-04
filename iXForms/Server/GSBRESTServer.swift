@@ -140,11 +140,11 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
         }
     }
     
-    func getFormList(projectID: String!, completion: @escaping (Error?) -> Void) {
-        os_log("%s.%s projectID=%s", #file, #function, projectID)
+    func getFormList(projectID: String? , completion: @escaping (Error?) -> Void) {
+        os_log("%s.%s projectID=%@", #file, #function, projectID!)
         
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
-            components.path.append("/projects/" + projectID + "/forms")
+            components.path.append("/projects/" + projectID! + "/forms")
             
             var request = URLRequest(url: components.url!)
             os_log("url=%s", request.url!.absoluteString)
@@ -198,11 +198,11 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
         }
     }
 
-    func getForm(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void) {
-        os_log("%s.%s projectID=%s formID=%s", #file, #function, projectID, formID)
+    func getForm(formID: String!, projectID: String?, completion: @escaping (Error?) -> Void) {
+        os_log("%s.%s projectID=%s formID=%s", #file, #function, projectID!, formID)
 
         if var components = URLComponents.init(url: self.url, resolvingAgainstBaseURL: false) {
-            components.path.append("/projects/" + projectID + "/forms/" + formID) // REST endpoint for XForm definition
+            components.path.append("/projects/" + projectID! + "/forms/" + formID) // REST endpoint for XForm definition
             components.path.append(".xml")
 
             var request = URLRequest(url: components.url!)
@@ -238,9 +238,17 @@ class GSBRESTServer: NSObject, GSBServer, URLSessionDelegate {
         }
     }
 
-    func getSubmissionList(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void) {}
+    func getSubmissionList(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void) {
+        os_log("[%@ %s]", String(describing: Self.self), #function)
+    }
     
-    func getSubmission(submissionID: String!, formID: String!, projectID: String!, completion: @escaping (Error?) -> Void) {}
+    func getSubmission(submissionID: String!, formID: String!, projectID: String!, completion: @escaping (Error?) -> Void) {
+        os_log("[%@ %s]", String(describing: Self.self), #function)
+    }
+
+    func submit(submission: XFormSubmission, completion: @escaping (Error?) -> Void) {
+        os_log("[%@ %s]", String(describing: Self.self), #function)
+    }
 
     // MARK: - Utility functions
 

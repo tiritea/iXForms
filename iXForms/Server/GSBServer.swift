@@ -47,10 +47,11 @@ protocol GSBServer : GSBListTableViewDataSource {
     init(url: URL!)
     func login(username: String!, password: String!, completion: @escaping (Error?) -> Void)
     func getProjectList(completion: @escaping (Error?) -> Void)
-    func getFormList(projectID: String!, completion: @escaping (Error?) -> Void)
-    func getForm(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
+    func getFormList(projectID: String?, completion: @escaping (Error?) -> Void)
+    func getForm(formID: String!, projectID: String?, completion: @escaping (Error?) -> Void)
     func getSubmissionList(formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
     func getSubmission(submissionID: String!, formID: String!, projectID: String!, completion: @escaping (Error?) -> Void)
+    func submit(submission: XFormSubmission, completion: @escaping (Error?) -> Void)
 }
 
 private var _server: GSBServer?
