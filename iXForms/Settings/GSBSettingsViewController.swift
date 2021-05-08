@@ -13,6 +13,10 @@ import KeychainSwift
 import RealmSwift
 import ImageRow
 
+let DEFAULT_SHOWHINTS = "showhints"
+let DEFAULT_SHOWICONS = "showicons"
+let DEFAULT_AUDITLOG = "auditlog"
+
 class GSBSettingsViewController: FormViewController {
     
     var api: ServerAPI!
@@ -101,8 +105,8 @@ class GSBSettingsViewController: FormViewController {
         
         // ---------- App settings ----------
         
-        //section = Section(header: "App", footer: "created by Xiphware")
-        section = Section("App")
+        section = Section(header: "App", footer: "created by Xiphware")
+        //section = Section("App")
         form.append(section)
         
         section.append(TextRow("version") {
@@ -166,25 +170,37 @@ class GSBSettingsViewController: FormViewController {
         section = Section("Settings")
         form.append(section)
 
-        tag = "guidance"
-        section.append(SwitchRow(tag) {
-            $0.title = "Show guidance hints"
-            $0.value = UserDefaults.standard.bool(forKey: tag)
+        section.append(SwitchRow(DEFAULT_SHOWHINTS) {
+            $0.title = "Show hints"
+            $0.value = UserDefaults.standard.bool(forKey: $0.tag!)
             }
             .onChange { row in
-                UserDefaults.standard.set(row.value, forKey: tag)
+                UserDefaults.standard.set(row.value, forKey: row.tag!)
             }
         )
         
-        tag = "auditlog"
-        section.append(SwitchRow(tag) {
-            $0.title = "Audit form changes"
-            $0.value = UserDefaults.standard.bool(forKey: tag)
+        section.append(SwitchRow(DEFAULT_SHOWICONS) {
+            $0.title = "Show question icons"
+            $0.value = UserDefaults.standard.bool(forKey: $0.tag!)
             }
             .onChange { row in
-                UserDefaults.standard.set(row.value, forKey: tag)
+                UserDefaults.standard.set(row.value, forKey: row.tag!)
             }
         )
+
+        section.append(SwitchRow(DEFAULT_AUDITLOG) {
+            $0.title = "Audit form changes"
+            $0.value = UserDefaults.standard.bool(forKey: $0.tag!)
+            }
+            .onChange { row in
+                UserDefaults.standard.set(row.value, forKey: row.tag!)
+            }
+        )
+        
+        // ---------- Demo ----------
+        
+        section = Section("Demo Forms")
+        form.append(section)
     }
     
     override func viewWillAppear(_ animated: Bool) {

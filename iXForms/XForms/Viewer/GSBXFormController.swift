@@ -17,6 +17,7 @@ import VideoRow
 
 import TLPhotoPicker
 import Photos
+import UIMultiPicker
 
 // Custom formatter for integers with a thousands separator. Adapted from Eureka DecimalFormatter.swift
 class ThousandsIntegerFormatter: NumberFormatter, FormatterProtocol {
@@ -236,39 +237,9 @@ class GSBXFormController: FormViewController {
         controls = xform.controls.map { $0 }
         attachments = submission.attachments
         
-        if xform.isGeoreferenced == true {
+        if xform.isGeoreferenced {
             print("This form is georeferenced!")
-        }
-        
-        // Use default UITableView.detailTextLabel color for displaying row values
-        TextRow.defaultCellUpdate = { (cell, row) in
-            cell.textField.textColor = .systemDetailTextLabel
-            if !row.isValid {
-                cell.titleLabel?.textColor = .red
-            }
-        }
-        IntRow.defaultCellUpdate = { (cell, row) in
-            cell.textField.textColor = .systemDetailTextLabel
-            if !row.isValid {
-                cell.titleLabel?.textColor = .red
-            }
-        }
-        DecimalRow.defaultCellUpdate = { (cell, row) in
-            cell.textField.textColor = .systemDetailTextLabel
-            if !row.isValid {
-                cell.titleLabel?.textColor = .red
-            }
-        }
-        TextAreaRow.defaultCellUpdate = { (cell, row) in
-            cell.textView.textColor = .systemDetailTextLabel
-            cell.textView.backgroundColor = UIColor(white: 0.98, alpha: 1)
-            // TODO change placeholder color?
-        }
-        
-        // Minimize segment width - https://github.com/xmartlabs/Eureka/issues/973
-        SegmentedRow<String>.defaultCellSetup = { (cell, row) in
-            cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-            cell.segmentedControl.apportionsSegmentWidthsByContent = true
+            iXForms.locationManager.startUpdatingLocation()
         }
         
         hidesBottomBarWhenPushed = true
@@ -278,6 +249,7 @@ class GSBXFormController: FormViewController {
         self.init(submission)
         self.group = group
     }
+    
 /*
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -301,6 +273,16 @@ class GSBXFormController: FormViewController {
         }
     }
 */
+    // https://stackoverflow.com/questions/32853212/detect-when-a-presented-view-controller-is-dismissed
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            if xform.isGeoreferenced {
+                iXForms.locationManager.stopUpdatingLocation()
+            }
+        }
+    }
+
     override func viewDidLoad() {
         os_log("[%@ %s]", String(describing: Self.self), #function)
         super.viewDidLoad()
@@ -479,6 +461,14 @@ class GSBXFormController: FormViewController {
                         }
                     }
                 }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-circled-a-33")
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
+                }
                 
             // ---------- numbers
             case "numbers" :
@@ -489,13 +479,17 @@ class GSBXFormController: FormViewController {
                         if !row.isHighlighted { // lost focus (ie finished editing)
                             self.setValueForControl(control: control, value: row.value)
                         }
-                    }}
-                    .cellSetup { cell, row in
-                        cell.textField.keyboardType = .decimalPad
-                        if let _ = control.hint {
-                            cell.accessoryType = .detailButton
-                        }
                     }
+                }
+                .cellSetup { cell, row in
+                    cell.textField.keyboardType = .decimalPad
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-33")
+                    }
+                    if let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
+                }
               
             // ---------- URL
             case "url" :
@@ -509,22 +503,44 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-link-33")
+                    }
                     if let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
 
-            // ---------- TODO: external app data capture
-            case _ where ((control.appearance?.hasPrefix("ex:")) != nil) :
+            // ---------- TODO: printer
+            case _ where (control.appearance?.hasPrefix("printer:") ?? false) :
                 os_log("unsupported appearance: %s", control.appearance!)
                 row = TextRow() {
                     $0.disabled = true
                     $0.value = value
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-print-33")?.withRenderingMode(.alwaysTemplate)
                     }
-                    .cellSetup { cell, row in
-                        if let _ = control.hint {
-                            cell.accessoryType = .detailButton
-                        }
+                    if let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
+                }
+                
+            // ---------- TODO: external app data capture
+            case _ where (control.appearance?.hasPrefix("ex:") ?? false) :
+                os_log("unsupported appearance: %s", control.appearance!)
+                row = TextRow() {
+                    $0.disabled = true
+                    $0.value = value
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-circled-a-arrow-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
                 }
                 
             default:
@@ -533,11 +549,14 @@ class GSBXFormController: FormViewController {
                 if let readonly = control.binding?.readonly, readonly == "true()", value == nil {
                     row = LabelRow() {
                         $0.add(ruleSet: rules)
+                    }
+                    .cellSetup { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                            cell.imageView?.image = UIImage(named: "icons8-multiline-text-33")
                         }
-                        .cellSetup { cell, row in
-                            if let _ = control.hint {
-                                cell.accessoryType = .detailButton
-                            }
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                            cell.accessoryType = .detailButton
+                        }
                     }
                     
                 // ---------- string
@@ -549,11 +568,15 @@ class GSBXFormController: FormViewController {
                             if !row.isHighlighted { // lost focus (ie finished editing)
                                 self.setValueForControl(control: control, value: row.value)
                             }
-                        }}
-                        .cellSetup { cell, row in
-                            if let _ = control.hint {
-                                cell.accessoryType = .detailButton
-                            }
+                        }
+                    }
+                    .cellSetup { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                            cell.imageView?.image = UIImage(named: "icons8-circled-a-33")?.withRenderingMode(.alwaysTemplate)
+                        }
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                            cell.accessoryType = .detailButton
+                        }
                     }
                 }
             }
@@ -582,7 +605,10 @@ class GSBXFormController: FormViewController {
                     row.formatter = ThousandsIntegerFormatter()
                     row.useFormatterDuringInput = true
                     
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -595,7 +621,10 @@ class GSBXFormController: FormViewController {
                     if value != nil { $0.value = value!.intValue }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-arrow-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -612,7 +641,10 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -635,7 +667,10 @@ class GSBXFormController: FormViewController {
                     row.useFormatterOnDidBeginEditing = true
                     //row.useFormatterDuringInput = true // TODO realtime formatting messes up decimal point
 
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -648,6 +683,17 @@ class GSBXFormController: FormViewController {
                         self.setValueForControl(control: control, value: value)
                     }
                 }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-north-direction-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                }
+                // Note: PushSelectorCell's must override Eureka's default .disclosureButton using cellUpdate instead
+                .cellUpdate { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailDisclosureButton
+                    }
+                }
                 
             // ---------- TODO: external app data capture
             case _ where ((control.appearance?.hasPrefix("ex:")) != nil) :
@@ -657,7 +703,10 @@ class GSBXFormController: FormViewController {
                     if value != nil { $0.value = value!.doubleValue }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-arrow-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -683,7 +732,10 @@ class GSBXFormController: FormViewController {
                     row.useFormatterOnDidBeginEditing = true
                     //row.useFormatterDuringInput = true // TODO realtime formatting messes up decimal point
                     
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-1st-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -693,6 +745,13 @@ class GSBXFormController: FormViewController {
         // TODO: randomize options
 
         case ControlType.selectone.rawValue :
+            var options: Array<String>
+            if control.appearance == "list-nolabel" {
+                options = Array(repeating: "", count: control.items.count) // hide labels
+            } else {
+                options = control.items.map{ $0.label }.filter{ $0.count > 0 } // remove null options
+            }
+            
             switch control.appearance {
                 
             // ---------- select1 compact
@@ -724,7 +783,7 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -752,7 +811,7 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -769,7 +828,7 @@ class GSBXFormController: FormViewController {
                     cell.slider.minimumValue = 0.0
                     cell.slider.maximumValue = Float(control.items.count)
                     
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -782,7 +841,7 @@ class GSBXFormController: FormViewController {
                     $0.add(ruleSet: rules)
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -846,46 +905,74 @@ class GSBXFormController: FormViewController {
             }
             
         // MARK: Select-Multi Controls
-        // TODO: randomize
-        
-        // TODO: image-map
+        // TODO: randomize options
 
         case ControlType.select.rawValue :
-            switch control.appearance {
             
-            // ---------- select compact
-            // TODO multi-select UISegmentedControl?
-            case "compact", "compact-2", "list", "label", "list-nolabel" :
-                os_log("unsupported appearance: %s", control.appearance!)
-                row = SegmentedRow<String>() {
-                    if control.appearance == "list-nolabel" {
-                        $0.options = Array(repeating: "", count: control.items.count) // Special case: hide labels!
-                    } else {
-                        $0.options = control.items.map { $0.label }
-                    }
-                    $0.disabled = true
-                }
-                .cellSetup { cell, row in
-                    if let _ = control.hint {
-                        cell.accessoryType = .detailButton
-                    }
+            let appearance = control.appearance ?? "full" // default if unspecified
+            switch appearance {
+            case "compact", "compact-2", "no-buttons", "columns", "columns-pack", "list", "label", "list-nolabel" :
+                row = MultiSegmentedRow<String>() // compact
+            case "minimal" :
+                //row = MultiPickerInlineRow<String>()
+                fallthrough
+            case "full" :
+                row = MultipleSelectorRow<String>()
+            default : // TODO unsupported appearances: autocomplete, image-map
+                os_log("unsupported appearance: %s", appearance)
+                row = LabelRow() // placeholder row
+                row.disabled = true
+            }
+            
+            var options: Array<String>
+            if control.appearance == "list-nolabel" {
+                options = Array(repeating: "", count: control.items.count) // explicitly hide labels
+            } else {
+                options = control.items.map{ $0.label }.filter{ $0.count > 0 } // otherwise remove options with no label since cant display them
+            }
+            if options.count == 0 {
+                row.disabled = true
+            }
+            
+            if let multiValueRow = row as? RowOf<Set<String>> {
+                if let values = getStringForNode(nodeset: node) { // space-seperated string
+                    multiValueRow.value = Set(values.components(separatedBy: .whitespaces).map { // space-seperated String -> Array -> Set
+                        let value = $0
+                        let selected = control.items.filter { $0.value == value } // find matching item(s) - should only be one!
+                        let label = selected.first!.label!
+                        return label // return matching item label
+                        // TODO what if unrecognized value? ie filter = []
+                    })
+                } else {
+                    multiValueRow.value = nil
                 }
                 
-            // ---------- select minimal
-            // TODO multi-select UIPickeView?
-            case "minimal" :
-                os_log("unsupported appearance: %s", control.appearance!)
-                row = PickerInlineRow<String>() {
-                    $0.options = control.items.map { $0.label }
-                    $0.disabled = true
-                }
-                .cellSetup { cell, row in
-                    if let _ = control.hint {
-                        cell.accessoryType = .detailButton
+/*
+                multiValueRow.onChange { row in
+                    // set of labels -> space separated string of values
+                    if let labels: Set<String> = multiV>alueRow.value {
+                        let values: Array<String> = labels.map { label in
+                            let selected = control.items.filter { $0.label == label }
+                            return selected.first!.value
+                            // TODO what if unrecognized label? ie filter = []
+                        }
+                        self.setValueForControl(control: control, value: values.joined(separator: " "))
+                    } else {
+                        self.setValueForControl(control: control, value: nil) // nothing selected
                     }
                 }
-                    
-            case "image-map" :
+ */
+            }
+            
+            if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS) && control.hint != nil {
+                row.baseCell.accessoryType = .detailButton
+            }
+            
+            
+            switch control.appearance {
+            case "autocomplete" : // TODO
+                fallthrough
+            case "image-map" : // TODO
                 os_log("unsupported appearance: %s", control.appearance!)
                 row = LabelRow() {
                     $0.add(ruleSet: rules)
@@ -897,14 +984,139 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 
-            case "autocomplete" :
-                os_log("unsupported appearance: %s", control.appearance!)
-                row = MultipleSelectorRow<String>() {
-                    $0.selectorTitle = control.label
-                    $0.options = control.items.map { $0.label }
-                    $0.disabled = true
+            // ---------- compact appearance
+            case "compact-2", "no-buttons", "columns", "columns-pack", "list", "label", "list-nolabel" :
+                row = MultiSegmentedRow<String>() {
+                    $0.options = options
+                    $0.disabled = Condition(booleanLiteral: $0.options!.count == 0)
+                    
+                    if let values = getStringForNode(nodeset: node) {
+                        // space separated string of values -> set of labels
+                        $0.value = Set(values.components(separatedBy: .whitespaces).map { // Space-seperated String -> Array -> Set
+                            let value = $0
+                            let selected = control.items.filter { $0.value == value } // find matching item(s) - should only be one!
+                            let label = selected.first!.label!
+                            return label // return matching item label
+                            // TODO what if unrecognized value? ie filter = []
+                        })
+                    } else {
+                        $0.value = nil
+                    }
+                    
+                    $0.onChange { row in
+                        // set of labels -> space separated string of values
+                        if let labels: Set<String> = row.value {
+                            let values: Array<String> = labels.map { label in
+                                let selected = control.items.filter { $0.label == label }
+                                return selected.first!.value
+                                // TODO what if unrecognized label? ie filter = []
+                            }
+                            self.setValueForControl(control: control, value: values.joined(separator: " "))
+                        } else {
+                            self.setValueForControl(control: control, value: nil) // nothing selected
+                        }
+                    }
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
                 }
                 
+            // ---------- minimal appearance
+            // TODO multi-select UIPickeView?
+            case "minimal" :
+       //         fallthrough
+      
+                row = MultiPickerRow<String>() {
+                    $0.options = control.items.map { $0.label }
+                    
+                    // Workaround: remove all null options and disable entire row if none left!
+                    $0.options = $0.options.filter { $0.count > 0 }
+                    $0.disabled = Condition(booleanLiteral: $0.options.count == 0) // https://github.com/xmartlabs/Eureka/issues/1393
+                    
+                    
+
+  /*
+                    $0.options = options
+                    $0.disabled = Condition(booleanLiteral: $0.options.count == 0)
+                    
+                    if let values = getStringForNode(nodeset: node) {
+                        // space separated string of values -> set of labels
+                        $0.value = Set(values.components(separatedBy: .whitespaces).map { // Space-seperated String -> Array -> Set
+                            let value = $0
+                            let selected = control.items.filter { $0.value == value } // find matching item(s) - should only be one!
+                            let label = selected.first!.label!
+                            return label // return matching item label
+                            // TODO what if unrecognized value? ie filter = []
+                        })
+                    } else {
+                        $0.value = nil
+                    }
+                    
+                    $0.onChange { row in
+                        // set of labels -> space separated string of values
+                        if let labels: Set<String> = row.value {
+                            let values: Array<String> = labels.map { label in
+                                let selected = control.items.filter { $0.label == label }
+                                return selected.first!.value
+                                // TODO what if unrecognized label? ie filter = []
+                            }
+                            self.setValueForControl(control: control, value: values.joined(separator: " "))
+                        } else {
+                            self.setValueForControl(control: control, value: nil) // nothing selected
+                        }
+                    }
+                        */
+                    
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
+                }
+            
+                /*
+                row = MultiPickerInlineRow<String>() {
+                    $0.options = options
+                    $0.disabled = Condition(booleanLiteral: $0.options.count == 0)
+                    
+                    if let values = getStringForNode(nodeset: node) {
+                        // space separated string of values -> set of labels
+                        $0.value = Set(values.components(separatedBy: .whitespaces).map { // Space-seperated String -> Array -> Set
+                            let value = $0
+                            let selected = control.items.filter { $0.value == value } // find matching item(s) - should only be one!
+                            let label = selected.first!.label!
+                            return label // return matching item label
+                            // TODO what if unrecognized value? ie filter = []
+                        })
+                    } else {
+                        $0.value = nil
+                    }
+                    
+                    $0.onChange { row in
+                        // set of labels -> space separated string of values
+                        if let labels: Set<String> = row.value {
+                            let values: Array<String> = labels.map { label in
+                                let selected = control.items.filter { $0.label == label }
+                                return selected.first!.value
+                                // TODO what if unrecognized label? ie filter = []
+                            }
+                            self.setValueForControl(control: control, value: values.joined(separator: " "))
+                        } else {
+                            self.setValueForControl(control: control, value: nil) // nothing selected
+                        }
+                    }
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailButton
+                    }
+                }
+             */
+
+            
+            // ---------- full appearance
             case "full" :
                 fallthrough
             default :
@@ -917,7 +1129,7 @@ class GSBXFormController: FormViewController {
                     $0.disabled = Condition(booleanLiteral: $0.options!.count == 0) // https://github.com/xmartlabs/Eureka/issues/1393
                     
                     if let values = getStringForNode(nodeset: node) {
-                        $0.value = Set(values.components(separatedBy: .whitespaces).map { // Array -> Set
+                        $0.value = Set(values.components(separatedBy: .whitespaces).map { // Space-seperated String -> Array -> Set
                             let value = $0
                             let selected = control.items.filter { $0.value == value } // find matching item(s) - should only be one!
                             let label = selected.first!.label!
@@ -941,12 +1153,13 @@ class GSBXFormController: FormViewController {
                             self.setValueForControl(control: control, value: nil) // nothing selected
                         }
                     }
+                    
                     // Set pushed header and footer - see https://github.com/xmartlabs/Eureka/issues/715
-                    $0.onPresent({ (form, pushedViewController) in
+                    $0.onPresent { (form, pushedViewController) in
                         let _ = pushedViewController.view
                         pushedViewController.form.first?.header = HeaderFooterView(title: "Select all that apply")
                         pushedViewController.form.first?.footer = HeaderFooterView(title: control.hint)
-                    })
+                    }
                 }
             }
             
@@ -970,7 +1183,10 @@ class GSBXFormController: FormViewController {
                 }
             }
             .cellSetup { cell, row in
-                if let _ = control.hint {
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-calendar-clock-33")
+                }
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                     cell.accessoryType = .detailButton
                 }
             }
@@ -985,7 +1201,10 @@ class GSBXFormController: FormViewController {
                     $0.disabled = true
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-calendar-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -1012,7 +1231,10 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-calendar-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -1039,7 +1261,10 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-calendar-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -1061,7 +1286,10 @@ class GSBXFormController: FormViewController {
                     }
                 }
                 .cellSetup { cell, row in
-                    if let _ = control.hint {
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-calendar-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                         cell.accessoryType = .detailButton
                     }
                 }
@@ -1084,7 +1312,10 @@ class GSBXFormController: FormViewController {
                 }
             }
             .cellSetup { cell, row in
-                if let _ = control.hint {
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-clock-33")?.withRenderingMode(.alwaysTemplate)
+                }
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
                     cell.accessoryType = .detailButton
                 }
             }
@@ -1110,6 +1341,16 @@ class GSBXFormController: FormViewController {
                     self.setValueForControl(control: control, value: XForm.geopointTransformer.transformedValue(row.value) as? String) // CLLocation -> XForm geopoint
                 }
             }
+            .cellSetup { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-marker-33")?.withRenderingMode(.alwaysTemplate)
+                }
+            }
+            .cellUpdate { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                    cell.accessoryType = .detailDisclosureButton
+                }
+            }
              
         // GPS Path
         case ControlType.geotrace.rawValue :
@@ -1118,6 +1359,16 @@ class GSBXFormController: FormViewController {
             row = TextRow() {
                 $0.disabled = true
             }
+            .cellSetup { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-map-pinpoint-33")?.withRenderingMode(.alwaysTemplate)
+                }
+            }
+            .cellUpdate { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                    cell.accessoryType = .detailDisclosureButton
+                }
+            }
 
         // GPS region
         case ControlType.geoshape.rawValue :
@@ -1125,6 +1376,16 @@ class GSBXFormController: FormViewController {
             os_log("unsupported control type: %d", control.type.value!)
             row = TextRow() {
                 $0.disabled = true
+            }
+            .cellSetup { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-map-pinpoint-33")?.withRenderingMode(.alwaysTemplate)
+                }
+            }
+            .cellUpdate { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                    cell.accessoryType = .detailDisclosureButton
+                }
             }
 
         // MARK: Boolean Controls
@@ -1314,9 +1575,14 @@ class GSBXFormController: FormViewController {
                 }
             }
             .cellSetup { cell, row in
-                //if let _ = control.hint { cell.accessoryType = .detailButton }
-                cell.accessoryView = UIImageView(image: UIImage(named: "icons8-barcode-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets))
-                cell.accessoryView?.tintColor = .systemBlue
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-barcode-33")?.withRenderingMode(.alwaysTemplate)
+                }
+            }
+            .cellUpdate { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                    cell.accessoryType = .detailDisclosureButton
+                }
             }
 
         // ---------- ranking
@@ -1326,6 +1592,16 @@ class GSBXFormController: FormViewController {
             row = TextRow() {
                 $0.disabled = true
             }
+            .cellSetup { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                    cell.imageView?.image = UIImage(named: "icons8-numeric-33")?.withRenderingMode(.alwaysTemplate)
+                }
+            }
+            .cellUpdate { cell, row in
+                if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                    cell.accessoryType = .detailDisclosureButton
+                }
+            }
 
         // MARK: Photos, Images
         
@@ -1334,76 +1610,106 @@ class GSBXFormController: FormViewController {
                 switch control.appearance {
                     
                 // ---------- signature
+                case "annotate" :
+                    row = ImageRow() {
+                        $0.disabled = true
+                    }
+                    .cellSetup { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                            cell.imageView?.image = UIImage(named: "icons8-camera-edit-33")?.withRenderingMode(.alwaysTemplate)
+                        }
+                    }
+                    // TODO thumbnail in accessoryView overrides hint button
+                    .cellUpdate { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                            cell.accessoryType = .detailDisclosureButton
+                        }
+                    }
+                    
+                // ---------- signature
                 case "signature" :
                     row = SignatureRow() {
-                    $0.placeholderImage = UIImage.init(named: "icons8-autograph-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets)
-                    
-                    if let filename = getStringForNode(nodeset: node) {
-                        // load image from documents directory
-                        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                        let url = documents.appendingPathComponent(filename)
-                        os_log("loading signature from %@", url.absoluteString)
-                        $0.value = try? UIImage(data: Data(contentsOf: url))
-                    }
-                        
-                    $0.onChange { row in //4
-                        if let image = row.value {
-                            // save jpeg image to documents directory using UUID filename
-                            let uuid = UUID().uuidString
+                        if let filename = getStringForNode(nodeset: node) {
+                            // load image from documents directory
                             let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                            let url = documents.appendingPathComponent(uuid).appendingPathExtension("jpg")
-                            if let data = image.jpegData(compressionQuality: 0.7) {
-                                os_log("saving image to %@ (%d kB)", url.absoluteString, data.count/1024)
-                                try! data.write(to: url) // TODO handle write errors
-                                self.setValueForControl(control: control, value: url.lastPathComponent)
-                            }
-                        } else {
-                            // Clear previous image
-                            self.setValueForControl(control: control, value: nil)
+                            let url = documents.appendingPathComponent(filename)
+                            os_log("loading signature from %@", url.absoluteString)
+                            $0.value = try? UIImage(data: Data(contentsOf: url))
                         }
-                    }}
-                    .cellSetup { cell, row in
-                        cell.accessoryView?.tintColor = .systemBlue
+                        
+                        $0.onChange { row in //4
+                            if let image = row.value {
+                                // save jpeg image to documents directory using UUID filename
+                                let uuid = UUID().uuidString
+                                let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                                let url = documents.appendingPathComponent(uuid).appendingPathExtension("jpg")
+                                if let data = image.jpegData(compressionQuality: 0.7) {
+                                    os_log("saving image to %@ (%d kB)", url.absoluteString, data.count/1024)
+                                    try! data.write(to: url) // TODO handle write errors
+                                    self.setValueForControl(control: control, value: url.lastPathComponent)
+                                }
+                            } else {
+                                // Clear previous image
+                                self.setValueForControl(control: control, value: nil)
+                            }
+                        }
                     }
-
+                    .cellSetup { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                            cell.imageView?.image = UIImage(named: "icons8-autograph-33")?.withRenderingMode(.alwaysTemplate)
+                        }
+                    }
+                    // TODO thumbnail in accessoryView overrides hint button
+                    .cellUpdate { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                            cell.accessoryType = .detailDisclosureButton
+                        }
+                    }
+                    
                 // ---------- draw (signature subclass)
                 case "draw" :
                     row = DrawRow() {
-                    $0.placeholderImage = UIImage.init(named: "icons8-design-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets)
-                    
-                    if let filename = getStringForNode(nodeset: node) {
-                        // load image from documents directory
-                        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                        let url = documents.appendingPathComponent(filename)
-                        os_log("loading image from %@", url.absoluteString)
-                        $0.value = try? UIImage(data: Data(contentsOf: url))
-                    }
-                        
-                    $0.onChange { row in //4
-                        if let image = row.value {
-                            // save jpeg image to documents directory using UUID filename
-                            let uuid = UUID().uuidString
+                        if let filename = getStringForNode(nodeset: node) {
+                            // load image from documents directory
                             let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                            let url = documents.appendingPathComponent(uuid).appendingPathExtension("jpg")
-                            if let data = image.jpegData(compressionQuality: 0.7) {
-                                os_log("saving image to %@ (%d kB)", url.absoluteString, data.count/1024)
-                                try! data.write(to: url) // TODO handle write errors
-                                self.setValueForControl(control: control, value: url.lastPathComponent)
-                            }
-                        } else {
-                            // Clear previous image
-                            self.setValueForControl(control: control, value: nil)
+                            let url = documents.appendingPathComponent(filename)
+                            os_log("loading image from %@", url.absoluteString)
+                            $0.value = try? UIImage(data: Data(contentsOf: url))
                         }
-                    }}
-                    .cellSetup { cell, row in
-                        cell.accessoryView?.tintColor = .systemBlue
+                        
+                        $0.onChange { row in //4
+                            if let image = row.value {
+                                // save jpeg image to documents directory using UUID filename
+                                let uuid = UUID().uuidString
+                                let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                                let url = documents.appendingPathComponent(uuid).appendingPathExtension("jpg")
+                                if let data = image.jpegData(compressionQuality: 0.7) {
+                                    os_log("saving image to %@ (%d kB)", url.absoluteString, data.count/1024)
+                                    try! data.write(to: url) // TODO handle write errors
+                                    self.setValueForControl(control: control, value: url.lastPathComponent)
+                                }
+                            } else {
+                                // Clear previous image
+                                self.setValueForControl(control: control, value: nil)
+                            }
+                        }
                     }
-                
+                    .cellSetup { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                            cell.imageView?.image = UIImage(named: "icons8-design-33")?.withRenderingMode(.alwaysTemplate)
+                        }
+                    }
+                    // TODO thumbnail in accessoryView overrides hint button
+                    .cellUpdate { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                            cell.accessoryType = .detailDisclosureButton
+                        }
+                    }
+  
                 // ---------- photo
                 // CRITICAL: Info.plist must contain NSCameraUsageDescription key
                 default:
                     row = ImageRow() {
-                        $0.placeholderImage = UIImage.init(named: "icons8-camera-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets)
                         $0.clearAction = .yes(style: .destructive) // BUG clear causes onChange: to save placeholder image!
                         
                         if let appearance = control.appearance {
@@ -1455,11 +1761,20 @@ class GSBXFormController: FormViewController {
                                 // Clear previous image
                                 self.setValueForControl(control: control, value: nil)
                             }
-                        }}
-                        .cellSetup { cell, row in
-                            cell.accessoryView?.tintColor = .systemBlue
                         }
                     }
+                    .cellSetup { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                            cell.imageView?.image = UIImage(named: "icons8-camera-33")?.withRenderingMode(.alwaysTemplate)
+                        }
+                    }
+                    // TODO thumbnail in accessoryView overrides hint button
+                    .cellUpdate { cell, row in
+                        if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                            cell.accessoryType = .detailDisclosureButton
+                        }
+                    }
+                }
                 
             // MARK: Video
 
@@ -1505,10 +1820,19 @@ class GSBXFormController: FormViewController {
                             // Clear previous image
                             self.setValueForControl(control: control, value: nil)
                         }
-                    }}
-                    .cellSetup { cell, row in
-                        cell.accessoryView?.tintColor = .systemBlue
                     }
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-video-camera-33")?.withRenderingMode(.alwaysTemplate)
+                    }
+                }
+                // TODO thumbnail in accessoryView overrides hint button
+                .cellUpdate { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailDisclosureButton
+                    }
+                }
 /*
                     if let filename = getStringForNode(nodeset: node) {
                         // TODO load video from documents directory
@@ -1537,11 +1861,17 @@ class GSBXFormController: FormViewController {
                 os_log("unsupported media type: %s", control.mediatype!)
                 row = ImageRow() {
                     $0.disabled = true
-                    $0.value = UIImage.init(named: "icons8-voice-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-microphone-33")?.withRenderingMode(.alwaysTemplate)
                     }
-                    .cellSetup { cell, row in
-                        cell.accessoryView?.tintColor = .systemBlue
+                }
+                .cellUpdate { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailDisclosureButton
                     }
+                }
                 
             // MARK: Documents
             // TODO ---------- document
@@ -1549,11 +1879,17 @@ class GSBXFormController: FormViewController {
                 os_log("unsupported media type: %s", control.mediatype!)
                 row = ImageRow() {
                     $0.disabled = true
-                    $0.value = UIImage.init(named: "icons8-document-33")?.withRenderingMode(.alwaysTemplate).withInset(iconInsets) // placeholder
+                }
+                .cellSetup { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWICONS) {
+                        cell.imageView?.image = UIImage(named: "icons8-document-33")?.withRenderingMode(.alwaysTemplate)
                     }
-                    .cellSetup { cell, row in
-                        cell.accessoryView?.tintColor = .systemBlue
+                }
+                .cellUpdate { cell, row in
+                    if UserDefaults.standard.bool(forKey: DEFAULT_SHOWHINTS), let _ = control.hint {
+                        cell.accessoryType = .detailDisclosureButton
                     }
+                }
             }
          
         default:

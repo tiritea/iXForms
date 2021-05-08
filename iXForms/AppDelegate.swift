@@ -15,6 +15,8 @@ import Eureka
 import ImageRow
 import VideoRow
 
+import XMLMapper // for demo form
+
 // MARK: Globals
 
 let APP = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? ""
@@ -54,9 +56,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         iXForms.locationManager.distanceFilter = kCLDistanceFilterNone
         //iXForms.locationManager.distanceFilter = kCLLocationAccuracyNearestTenMeters
         iXForms.locationManager.delegate = self
-        iXForms.locationManager.startUpdatingLocation() // TODO start only when current form contains geopoint/geotrace/geoshape questions
+        //iXForms.locationManager.startUpdatingLocation() // only start when current form contains geopoint/geotrace/geoshape questions
 
-        // Euerka defaults
+        // Euerka defaults: DecimalRow
+        DecimalRow.defaultCellUpdate = { (cell, row) in
+            cell.textField.textColor = .systemDetailTextLabel
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+            if !row.isValid {
+                cell.titleLabel?.textColor = .red
+            }
+        }
+        
+        TextAreaRow.defaultCellUpdate = { (cell, row) in
+            cell.textView.textColor = .systemDetailTextLabel
+            cell.textView.backgroundColor = UIColor(white: 0.98, alpha: 1)
+         }
+        
+        // Minimize segment width - https://github.com/xmartlabs/Eureka/issues/973
+        SegmentedRow<String>.defaultCellSetup = { (cell, row) in
+            cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+            cell.segmentedControl.apportionsSegmentWidthsByContent = true
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+            if !row.isValid {
+                cell.titleLabel?.textColor = .red
+            }
+        }
+        
+        SliderRow.defaultCellSetup = { (cell, row) in
+            cell.textLabel?.numberOfLines = 0
+        }
+            
+        RatingRow.defaultCellSetup = { (cell, row) in
+            cell.textLabel?.numberOfLines = 0
+        }
+        
         TextRow.defaultCellSetup = { (cell, row) in
             cell.textLabel?.numberOfLines = 0
             cell.textField.keyboardType = .asciiCapable
@@ -65,12 +98,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         }
         TextRow.defaultCellUpdate = { (cell, row) in
             cell.textField.textColor = .systemDetailTextLabel
-            cell.textLabel?.textColor = .black
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+            if !row.isValid {
+                cell.titleLabel?.textColor = .red
+            }
         }
         
         LabelRow.defaultCellSetup = { (cell, row) in
             cell.textLabel?.numberOfLines = 0
-            cell.textLabel?.font = cell.textLabel?.font.italic()
+            cell.textLabel?.font = cell.textLabel?.font.italic() // italicize XLSForm read-only 'notes'
             cell.textLabel?.textAlignment = .justified
         }
         
@@ -84,13 +120,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         }
         IntRow.defaultCellUpdate = { (cell, row) in
             cell.textField.textColor = .systemDetailTextLabel
-        }
-        
-        SegmentedRow<String>.defaultCellSetup = { (cell, row) in
-            // Minimize segment width; see https://github.com/xmartlabs/Eureka/issues/973
-            cell.segmentedControl.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-            cell.segmentedControl.apportionsSegmentWidthsByContent = true
-            //cell.tintColor = .control
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+            if !row.isValid {
+                cell.titleLabel?.textColor = .red
+            }
         }
         
         SwitchRow.defaultCellSetup = { (cell, row) in
@@ -100,6 +133,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         }
         
         ButtonRow.defaultCellSetup = { (cell, row) in
+            cell.textLabel?.numberOfLines = 0
             cell.textLabel?.font = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline) // bold
             cell.tintColor = .white
             cell.backgroundColor = .systemRed
@@ -107,24 +141,54 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         
         ImageRow.defaultCellUpdate = { (cell, row) in
             cell.textLabel?.numberOfLines = 0
+            cell.imageView?.tintColor = cell.textLabel?.textColor
             //cell.textLabel?.textColor = .black
         }
         
         _VideoRow.defaultCellUpdate = { (cell, row) in
             cell.textLabel?.numberOfLines = 0
+            cell.imageView?.tintColor = cell.textLabel?.textColor
             //cell.textLabel?.textColor = .black
         }
 
-        DateRow.defaultCellUpdate = { (cell, row) in
+        DateRow.defaultCellSetup = { (cell, row) in
             cell.textLabel?.numberOfLines = 0
+        }
+        DateRow.defaultCellUpdate = { (cell, row) in
             cell.textLabel?.textColor = .black
-            cell.datePicker.tintColor = .red
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+            //cell.datePicker.tintColor = .red
+        }
+        
+        TimeRow.defaultCellUpdate = { (cell, row) in
+            cell.textLabel?.textColor = .black
+            cell.imageView?.tintColor = cell.textLabel?.textColor
         }
         
         MultipleSelectorRow<String>.defaultCellUpdate = { (cell, row) in
             cell.textLabel?.numberOfLines = 0
         }
 
+        CompassRow.defaultCellUpdate = { cell, row in
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+        }
+        
+        LocationRow.defaultCellUpdate = { cell, row in
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+        }
+        
+        BarcodeScannerRow.defaultCellUpdate = { cell, row in
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+        }
+        
+        SignatureRow.defaultCellUpdate = { cell, row in
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+        }
+        
+        DrawRow.defaultCellUpdate = { cell, row in
+            cell.imageView?.tintColor = cell.textLabel?.textColor
+        }
+        
         ValueTransformer.setValueTransformer(GSBGeopointTransformer(), forName: NSValueTransformerName("GSBGeopointTransformer"))
 
         // Lookup previously saved API & server, otherwise use default
@@ -183,9 +247,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         settingsController.tabBarItem.tag = 2
         
         // 3 = Help
+        let form = XForm()
+        if let path = Bundle.main.path(forResource: "all-widgets", ofType: "xml") {
+            do {
+                form.xml = try String(contentsOfFile: path)
+                form.id = "all-widgets"
+                form.name = "All Widgets"
+                form.version = "1"
+                form.state.value = FormState.open.rawValue
+            } catch {
+                print("ERROR: couldnt load all-widgets.xml")
+            }
+        }
+        let formController = GSBFormViewController(form)
+        let helpController = UINavigationController(rootViewController:formController)
+        helpController.title = form.name
+/*
         let helpController = UIViewController() // STUB
         helpController.title = "Help"
         helpController.view.backgroundColor = UIColor.blue
+ */
         helpController.tabBarItem = UITabBarItem(title: helpController.title, image: UIImage(named: "icons8-help-33"), selectedImage: UIImage(named: "icons8-help-filled-33"))
         helpController.tabBarItem.tag = 3
 

@@ -17,6 +17,7 @@ target 'iXForms' do
   pod 'SwiftSignatureView'
   pod 'SwiftyDraw'
   pod 'Cosmos'
+  pod 'UIMultiPicker'
   
   target 'iXFormsTests' do
     inherit! :search_paths

@@ -1,5 +1,5 @@
 //
-//  LocationRow.swift
+//  MultiLocationRow.swift
 //  iXForms
 //
 //  Created by Gareth Bestor on 12/12/20.
@@ -11,9 +11,9 @@ import MapKit
 
 // MARK: Row
 
-public final class LocationRow: OptionsRow<PushSelectorCell<CLLocation>>, PresenterRowType, RowType {
+public final class MultiLocationRow: OptionsRow<PushSelectorCell<CLLocation>>, PresenterRowType, RowType {
     
-    public typealias PresenterRow = MapViewController
+    public typealias PresenterRow = MultiMapViewController
     
     public var trackUser = false // expose MKMapView.userTrackingMode
     
@@ -25,7 +25,7 @@ public final class LocationRow: OptionsRow<PushSelectorCell<CLLocation>>, Presen
 
     public required init(tag: String?) {
         super.init(tag: tag)
-        presentationMode = .show(controllerProvider: ControllerProvider.callback { return MapViewController(){ _ in } }, onDismiss: { vc in _ = vc.navigationController?.popViewController(animated: true) })
+        presentationMode = .show(controllerProvider: ControllerProvider.callback { return MultiMapViewController(){ _ in } }, onDismiss: { vc in _ = vc.navigationController?.popViewController(animated: true) })
 
         displayValueFor = {
             guard let location = $0 else { return "" }
@@ -69,14 +69,17 @@ public final class LocationRow: OptionsRow<PushSelectorCell<CLLocation>>, Presen
 
 // MARK: ViewController
 
-public class MapViewController : UIViewController, TypedRowControllerType, MKMapViewDelegate, UIGestureRecognizerDelegate {
+public class MultiMapViewController : UIViewController, TypedRowControllerType, MKMapViewDelegate, UIGestureRecognizerDelegate {
+    public typealias RowValue = CLLocation
+    
+//public class MultiMapViewController : MapViewController {
 
-    public var row: RowOf<CLLocation>!
+    public var row: RowOf<RowValue>!
     public var onDismissCallback: ((UIViewController) -> ())?
     
     let mapView = MKMapView()
     let saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: nil, action: #selector(MapViewController.save(_:)))
-    private var location: CLLocation?
+    var location: CLLocation?
 
     lazy var marker: UIImageView = { [unowned self] in
         let view = UIImageView(image: UIImage(named: "icons8-marker-50")?.withRenderingMode(.alwaysTemplate))
